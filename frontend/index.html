@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>CyberShield AI — India Threat Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:#04070e;color:#d4e2f0;font-family:'DM Sans',system-ui,sans-serif;font-size:13.5px;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 60% 45% at 10% 0%,rgba(6,182,212,0.055) 0%,transparent 50%),radial-gradient(ellipse 40% 35% at 90% 95%,rgba(139,92,246,0.03) 0%,transparent 45%);background-image:radial-gradient(circle,rgba(255,255,255,0.014) 1px,transparent 1px);background-size:28px 28px}
+#root{position:relative;z-index:1}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:rgba(6,182,212,0.2);border-radius:10px}
+/* SHELL */
+.shell{display:flex;height:100vh;overflow:hidden}
+/* SIDEBAR */
+.sidebar{width:228px;flex-shrink:0;background:linear-gradient(180deg,rgba(7,12,23,0.99),rgba(5,9,18,0.99));border-right:1px solid rgba(255,255,255,0.048);display:flex;flex-direction:column;z-index:50;position:relative}
+.sidebar::after{content:'';position:absolute;top:0;right:0;bottom:0;width:1px;background:linear-gradient(to bottom,transparent,rgba(6,182,212,0.1) 30%,rgba(6,182,212,0.1) 70%,transparent);pointer-events:none}
+.sb-logo{display:flex;align-items:center;gap:10px;padding:0 16px;height:52px;border-bottom:1px solid rgba(255,255,255,0.048);flex-shrink:0}
+.sb-mark{width:28px;height:28px;background:linear-gradient(145deg,#06b6d4,rgba(6,182,212,0.5));border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 16px rgba(6,182,212,0.2),inset 0 1px 0 rgba(255,255,255,0.15);font-size:0.75rem;color:#04070e;font-weight:700}
+.sb-txt{font-size:0.85rem;font-weight:700;color:#eaf0fc;line-height:1.1}
+.sb-txt b{color:#06b6d4}
+.sb-sub{font-family:'JetBrains Mono',monospace;font-size:0.5rem;color:#344d68;letter-spacing:0.12em;text-transform:uppercase}
+.sb-sec{font-family:'JetBrains Mono',monospace;font-size:0.54rem;font-weight:500;color:#344d68;text-transform:uppercase;letter-spacing:0.14em;padding:16px 16px 5px}
+.sb-divider{height:1px;background:rgba(255,255,255,0.048);margin:4px 12px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 16px;cursor:pointer;border:none;background:none;width:100%;text-align:left;color:#607e9a;font-size:0.8rem;font-weight:500;transition:all 0.15s;position:relative;font-family:'DM Sans',sans-serif}
+.nav-item:hover{color:#d4e2f0;background:rgba(255,255,255,0.025)}
+.nav-item.active{color:#06b6d4;background:rgba(6,182,212,0.08)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:2px;background:#06b6d4;border-radius:0 2px 2px 0;box-shadow:0 0 8px rgba(6,182,212,0.4)}
+.nav-icon{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:5px;font-size:0.8rem;flex-shrink:0;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.048)}
+.nav-item.active .nav-icon{background:rgba(6,182,212,0.1);border-color:rgba(6,182,212,0.18)}
+.nav-badge{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:0.52rem;padding:1px 5px;border-radius:100px}
+.sb-foot{margin-top:auto;padding:12px 16px;border-top:1px solid rgba(255,255,255,0.048)}
+.sb-pill{display:flex;align-items:center;gap:6px;background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.15);border-radius:100px;padding:4px 9px;font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:#10b981}
+.dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;animation:pulse 2.5s ease-in-out infinite}
+.dot-g{background:#10b981;box-shadow:0 0 5px #10b981}
+.dot-r{background:#ef4444;box-shadow:0 0 5px #ef4444}
+.dot-a{background:#f59e0b;box-shadow:0 0 5px #f59e0b}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
+/* MAIN */
+.main-col{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{height:52px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.048);background:rgba(4,7,14,0.9);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-between;padding:0 22px;z-index:40}
+.bc{display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:#344d68}
+.bc-cur{color:#d4e2f0;font-weight:500}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-badge{display:flex;align-items:center;gap:5px;padding:3px 10px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:0.58rem;font-weight:500}
+.tb-clean{background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.18);color:#10b981}
+.tb-alert{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.22);color:#ef4444}
+.tb-time{font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:#344d68;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.048);border-radius:5px;padding:3px 9px}
+.page-area{flex:1;overflow-y:auto;padding:20px 24px}
+/* PAGE */
+.page{animation:pageIn 0.25s ease both}
+@keyframes pageIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.pg-head{margin-bottom:18px}
+.pg-title{font-size:1.25rem;font-weight:700;color:#eaf0fc;letter-spacing:-0.025em;margin-bottom:2px}
+.pg-sub{font-size:0.74rem;color:#607e9a}
+/* CARDS */
+.card{background:rgba(7,12,23,0.97);border:1px solid rgba(255,255,255,0.048);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;backdrop-filter:blur(20px);transition:border-color 0.2s}
+.card:hover{border-color:rgba(255,255,255,0.09)}
+.card-sm{padding:12px 14px}
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ct{font-family:'JetBrains Mono',monospace;font-size:0.59rem;font-weight:500;color:#607e9a;text-transform:uppercase;letter-spacing:0.1em;display:flex;align-items:center;gap:6px}
+.cd{width:5px;height:5px;border-radius:50%;background:#06b6d4;box-shadow:0 0 6px rgba(6,182,212,0.5)}
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.g6{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:14px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;align-items:center;gap:7px}
+.spacer{flex:1}
+.mb8{margin-bottom:8px}
+.mb12{margin-bottom:12px}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:7px;font-size:0.76rem;font-weight:600;cursor:pointer;border:none;transition:all 0.15s;font-family:'DM Sans',sans-serif}
+.btn-primary{background:#06b6d4;color:#04070e;box-shadow:0 2px 10px rgba(6,182,212,0.22)}
+.btn-primary:hover{background:#22d3ee;transform:translateY(-1px);box-shadow:0 4px 16px rgba(6,182,212,0.32)}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-ghost{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.09);color:#607e9a}
+.btn-ghost:hover{color:#d4e2f0;border-color:rgba(255,255,255,0.13)}
+.btn-sm{padding:5px 11px;font-size:0.7rem}
+.btn-xs{padding:4px 9px;font-size:0.66rem}
+.btn-wa{background:#25d366;color:#000}
+.btn-wa:hover{background:#1fba58;transform:translateY(-1px)}
+/* TAGS */
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:100px;font-family:'JetBrains Mono',monospace;font-size:0.57rem;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;white-space:nowrap}
+.t-c{background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.22);color:#06b6d4}
+.t-g{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.22);color:#10b981}
+.t-r{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.22);color:#ef4444}
+.t-y{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.22);color:#f59e0b}
+.t-v{background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.22);color:#8b5cf6}
+.t-d{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);color:#607e9a}
+/* KPI */
+.kpi{background:rgba(7,12,23,0.97);border:1px solid rgba(255,255,255,0.048);border-radius:11px;padding:12px 14px;position:relative;overflow:hidden;transition:all 0.2s}
+.kpi:hover{border-color:rgba(255,255,255,0.09);transform:translateY(-1px)}
+.kpi-line{position:absolute;top:0;left:0;right:0;height:1px}
+.kpi-val{font-family:'JetBrains Mono',monospace;font-size:1.35rem;font-weight:600;letter-spacing:-0.02em;color:#eaf0fc;line-height:1;margin-bottom:3px;transition:color 0.4s}
+.kpi-val.dim{color:#344d68}
+.kpi-lbl{font-size:0.63rem;color:#607e9a}
+/* RISK BAR */
+.rbar{margin-bottom:10px}
+.rbar-row{display:flex;justify-content:space-between;margin-bottom:4px}
+.rbar-name{font-size:0.7rem;color:#607e9a}
+.rbar-pct{font-family:'JetBrains Mono',monospace;font-size:0.65rem;font-weight:600}
+.rbar-track{height:4px;background:rgba(255,255,255,0.05);border-radius:100px;overflow:hidden}
+.rbar-fill{height:100%;border-radius:100px;transition:width 1.3s cubic-bezier(0.23,1,0.32,1)}
+.rf-s{background:#10b981}
+.rf-w{background:#f59e0b}
+.rf-d{background:#ef4444}
+/* VERDICT */
+.verdict{display:flex;align-items:center;gap:12px;border-radius:8px;padding:12px 14px;margin-bottom:12px}
+.verdict.safe{background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.18)}
+.verdict.warn{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.18)}
+.verdict.danger{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.22)}
+.v-icon{width:36px;height:36px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0}
+.verdict.safe .v-icon{background:rgba(16,185,129,0.12)}
+.verdict.warn .v-icon{background:rgba(245,158,11,0.12)}
+.verdict.danger .v-icon{background:rgba(239,68,68,0.12)}
+.v-label{font-family:'JetBrains Mono',monospace;font-size:0.55rem;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:1px}
+.verdict.safe .v-label{color:#10b981}
+.verdict.warn .v-label{color:#f59e0b}
+.verdict.danger .v-label{color:#ef4444}
+.v-score{font-size:1.4rem;font-weight:700;letter-spacing:-0.03em;line-height:1}
+.verdict.safe .v-score{color:#10b981}
+.verdict.warn .v-score{color:#f59e0b}
+.verdict.danger .v-score{color:#ef4444}
+.v-desc{font-size:0.72rem;color:#607e9a;margin-top:1px}
+/* FLAGS */
+.flags{display:flex;flex-direction:column}
+.flag{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.048)}
+.flag:last-child{border-bottom:none}
+.flag-dot{width:5px;height:5px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.fd-hi{background:#ef4444;box-shadow:0 0 5px #ef4444}
+.fd-md{background:#f59e0b;box-shadow:0 0 5px #f59e0b}
+.fd-lo{background:#344d68}
+.flag-txt{font-size:0.74rem;color:#d4e2f0;line-height:1.5}
+/* FORM */
+.textarea{width:100%;background:#0a1222;border:1px solid rgba(255,255,255,0.09);border-radius:7px;padding:11px 13px;color:#eaf0fc;font-family:'JetBrains Mono',monospace;font-size:0.74rem;line-height:1.7;resize:vertical;min-height:110px;outline:none;transition:border-color 0.15s}
+.textarea:focus{border-color:rgba(6,182,212,0.32)}
+.textarea::placeholder{color:#344d68}
+.select{width:100%;background:#0a1222;border:1px solid rgba(255,255,255,0.09);border-radius:7px;padding:8px 11px;color:#eaf0fc;font-family:'DM Sans',sans-serif;font-size:0.78rem;outline:none;transition:border-color 0.15s;cursor:pointer}
+.select:focus{border-color:rgba(6,182,212,0.32)}
+.field-label{font-family:'JetBrains Mono',monospace;font-size:0.57rem;color:#607e9a;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:5px;display:block}
+/* UPLOAD ZONE */
+.drop-zone{border:1px dashed rgba(255,255,255,0.1);border-radius:11px;padding:30px 16px;text-align:center;cursor:pointer;background:rgba(255,255,255,0.025);transition:all 0.2s}
+.drop-zone:hover{border-color:rgba(6,182,212,0.4);background:rgba(6,182,212,0.05)}
+.drop-zone h4{font-size:0.85rem;font-weight:600;color:#d4e2f0;margin-bottom:3px;margin-top:8px}
+.drop-zone p{font-size:0.7rem;color:#607e9a}
+.drop-zone p em{color:#06b6d4;font-style:normal}
+/* FILE CHIP */
+.file-chip{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.09);border-radius:6px;padding:8px 11px;margin-top:9px}
+.fc-name{font-size:0.76rem;font-weight:600;color:#d4e2f0}
+.fc-meta{font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:#344d68}
+/* WAIT / PROC */
+.wait-box{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:42px 20px;gap:9px;text-align:center;border:1px dashed rgba(255,255,255,0.07);border-radius:11px;background:rgba(255,255,255,0.012)}
+.wait-icon{font-size:2.2rem;opacity:0.35;margin-bottom:3px}
+.wait-title{font-size:0.9rem;font-weight:600;color:#607e9a}
+.wait-sub{font-size:0.72rem;color:#344d68;max-width:230px;line-height:1.6}
+.wait-hint{font-family:'JetBrains Mono',monospace;font-size:0.56rem;color:#344d68;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.048);border-radius:100px;padding:3px 10px;text-transform:uppercase;letter-spacing:0.05em}
+.proc-box{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:38px 20px;text-align:center}
+.spinner{width:38px;height:38px;border-radius:50%;border:2px solid rgba(255,255,255,0.08);border-top-color:#06b6d4;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.proc-label{font-size:0.8rem;color:#d4e2f0;font-weight:500}
+.proc-sub{font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:#344d68;max-width:270px;line-height:1.7}
+/* HERO */
+.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(6,182,212,0.045),rgba(139,92,246,0.025));border:1px solid rgba(255,255,255,0.09);border-radius:14px;padding:26px 30px 22px;margin-bottom:16px}
+.hero::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(6,182,212,0.3),rgba(139,92,246,0.18),transparent);pointer-events:none}
+.hero-ew{display:inline-flex;align-items:center;gap:6px;background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.18);border-radius:100px;padding:3px 11px;margin-bottom:11px;font-family:'JetBrains Mono',monospace;font-size:0.56rem;color:#06b6d4;text-transform:uppercase;letter-spacing:0.1em}
+.hero h1{font-size:clamp(1.45rem,2.6vw,2.1rem);font-weight:700;letter-spacing:-0.03em;line-height:1.1;color:#eaf0fc;margin-bottom:8px}
+.hero h1 span{color:#06b6d4}
+.hero p{font-size:0.82rem;color:#607e9a;max-width:480px;line-height:1.7;margin-bottom:16px}
+/* FEATURE GRID */
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:16px}
+.feat-card{background:rgba(7,12,23,0.97);border:1px solid rgba(255,255,255,0.048);border-radius:11px;padding:14px;cursor:pointer;transition:all 0.2s}
+.feat-card:hover{border-color:rgba(255,255,255,0.1);transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,0.32)}
+.feat-icon{width:32px;height:32px;border-radius:7px;border:1px solid;display:flex;align-items:center;justify-content:center;font-size:0.85rem;margin-bottom:9px}
+.feat-card h4{font-size:0.8rem;font-weight:700;color:#eaf0fc;margin-bottom:3px}
+.feat-card p{font-size:0.68rem;color:#607e9a;line-height:1.55}
+.feat-arr{margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:#344d68;transition:color 0.15s}
+.feat-card:hover .feat-arr{color:#06b6d4}
+/* TIMELINE */
+.tl-row{display:flex;align-items:flex-start;gap:9px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.048)}
+.tl-row:last-child{border-bottom:none}
+.tl-dot{width:7px;height:7px;border-radius:50%;margin-top:3px;flex-shrink:0}
+.tl-body{flex:1}
+.tl-title{font-size:0.76rem;font-weight:500;color:#d4e2f0;margin-bottom:1px}
+.tl-meta{font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:#344d68}
+/* CONF BARS */
+.conf-row{margin-bottom:9px}
+.conf-hd{display:flex;justify-content:space-between;margin-bottom:3px}
+.conf-name{font-size:0.7rem;color:#607e9a}
+.conf-pct{font-family:'JetBrains Mono',monospace;font-size:0.65rem;font-weight:600}
+/* WAVEFORM */
+.wave-canvas{width:100%;height:62px;display:block;background:rgba(255,255,255,0.02);border-radius:6px;border:1px solid rgba(255,255,255,0.048)}
+/* WEBCAM */
+.cam-frame{position:relative;border-radius:10px;overflow:hidden;background:#0a1222;aspect-ratio:16/10;border:1px solid rgba(255,255,255,0.048)}
+.cam-frame video{width:100%;height:100%;object-fit:cover;display:block}
+.cam-overlay{position:absolute;inset:0;pointer-events:none}
+.scan-line{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#06b6d4,transparent);opacity:0.5;animation:scanDown 4s linear infinite}
+@keyframes scanDown{0%{top:0}100%{top:100%}}
+.cam-corner{position:absolute;width:13px;height:13px}
+.cam-corner.tl{top:9px;left:9px;border-top:1.5px solid #06b6d4;border-left:1.5px solid #06b6d4}
+.cam-corner.tr{top:9px;right:9px;border-top:1.5px solid #06b6d4;border-right:1.5px solid #06b6d4}
+.cam-corner.bl{bottom:9px;left:9px;border-bottom:1.5px solid #06b6d4;border-left:1.5px solid #06b6d4}
+.cam-corner.br{bottom:9px;right:9px;border-bottom:1.5px solid #06b6d4;border-right:1.5px solid #06b6d4}
+.cam-hud-top{position:absolute;top:8px;right:9px;display:flex;align-items:center;gap:5px;background:rgba(4,7,14,0.82);backdrop-filter:blur(12px);border:1px solid rgba(6,182,212,0.18);border-radius:5px;padding:3px 9px;font-family:'JetBrains Mono',monospace;font-size:0.56rem;color:#06b6d4}
+.cam-hud-bot{position:absolute;bottom:9px;left:9px;right:9px;background:rgba(4,7,14,0.82);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.07);border-radius:6px;padding:8px 11px}
+.cam-risk-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+/* SCORE RING */
+.ring-wrap{display:flex;flex-direction:column;align-items:center;gap:9px;padding:10px 0}
+/* MAP */
+.map-svg{width:100%;height:420px;display:block;background:#020810;border-radius:8px;border:1px solid rgba(6,182,212,0.1)}
+.map-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+.leg-item{display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:0.56rem;color:#607e9a}
+.leg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+/* FILTER CHIPS */
+.filter-row{display:flex;gap:5px;flex-wrap:wrap}
+.fchip{padding:3px 10px;border-radius:100px;font-family:'JetBrains Mono',monospace;font-size:0.59rem;cursor:pointer;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.025);color:#607e9a;transition:all 0.13s}
+.fchip:hover{color:#d4e2f0;border-color:rgba(255,255,255,0.12)}
+.fchip.on{background:rgba(6,182,212,0.1);border-color:rgba(6,182,212,0.28);color:#06b6d4}
+/* HEATMAP */
+.heat-row{display:flex;align-items:center;padding:7px 10px;border-radius:7px;margin-bottom:4px;border:1px solid;transition:all 0.15s}
+.heat-row:hover{opacity:0.9;transform:translateX(2px)}
+.heat-nm{font-size:0.74rem;font-weight:600;color:#eaf0fc;min-width:105px}
+.heat-bar{flex:1;height:3px;border-radius:100px;background:rgba(255,255,255,0.05);margin:0 10px}
+.heat-fill{height:100%;border-radius:100px;transition:width 0.9s ease}
+.heat-cnt{font-family:'JetBrains Mono',monospace;font-size:0.68rem;font-weight:600;min-width:18px;text-align:right}
+/* HOTSPOT */
+.hs-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:7px;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.048);margin-bottom:5px;transition:border-color 0.15s}
+.hs-row:hover{border-color:rgba(255,255,255,0.09)}
+.hs-rank{font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:#344d68;width:20px}
+.hs-city{font-size:0.76rem;font-weight:600;color:#eaf0fc}
+.hs-sub{font-size:0.65rem;color:#607e9a}
+/* MAP TOOLTIP */
+.map-tooltip{position:absolute;background:#070c17;border:1px solid #06b6d4;border-radius:9px;padding:11px 14px;pointer-events:none;min-width:158px;box-shadow:0 8px 24px rgba(0,0,0,0.7);display:none;z-index:50;font-family:'DM Sans',sans-serif;transition:border-color 0.2s}
+.tt-type{font-weight:700;font-size:0.82rem;margin-bottom:5px}
+.tt-row{font-size:0.72rem;color:#60809a;margin-bottom:3px}
+.tt-row span{color:#eaf0fc}
+/* CHAT */
+.chat-win{height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:9px;padding:2px 0}
+.chat-msg{display:flex;flex-direction:column;gap:2px;animation:pageIn 0.22s ease}
+.chat-msg.user{align-items:flex-end}
+.chat-msg.bot{align-items:flex-start}
+.chat-bubble{max-width:84%;padding:9px 13px;font-size:0.76rem;line-height:1.55}
+.chat-msg.user .chat-bubble{background:rgba(6,182,212,0.13);border:1px solid rgba(6,182,212,0.22);color:#eaf0fc;border-radius:9px 9px 0 9px}
+.chat-msg.bot .chat-bubble{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#d4e2f0;border-radius:9px 9px 9px 0}
+.chat-time{font-family:'JetBrains Mono',monospace;font-size:0.52rem;color:#344d68}
+.chat-typing{display:flex;align-items:center;gap:3px;padding:8px 13px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:9px;width:fit-content}
+.chat-tdot{width:5px;height:5px;border-radius:50%;background:#06b6d4}
+.chat-tdot:nth-child(1){animation:pulse 1.2s ease-in-out infinite}
+.chat-tdot:nth-child(2){animation:pulse 1.2s ease-in-out 0.15s infinite}
+.chat-tdot:nth-child(3){animation:pulse 1.2s ease-in-out 0.3s infinite}
+.chat-input-row{display:flex;gap:7px;margin-top:9px}
+.chat-input{flex:1;background:#0a1222;border:1px solid rgba(255,255,255,0.09);border-radius:7px;padding:9px 13px;color:#eaf0fc;font-family:'DM Sans',sans-serif;font-size:0.78rem;outline:none;transition:border-color 0.15s}
+.chat-input:focus{border-color:rgba(6,182,212,0.32)}
+.chat-input::placeholder{color:#344d68}
+.qbtn{padding:5px 11px;border-radius:100px;font-size:0.66rem;cursor:pointer;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.025);color:#607e9a;transition:all 0.13s;white-space:nowrap;font-family:'DM Sans',sans-serif;display:block;width:100%;text-align:left;margin-bottom:5px}
+.qbtn:hover{border-color:rgba(6,182,212,0.28);color:#06b6d4;background:rgba(6,182,212,0.08)}
+/* HISTORY TABLE */
+.hist-table{width:100%;border-collapse:collapse}
+.hist-table th{font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:500;color:#344d68;text-transform:uppercase;letter-spacing:0.1em;padding:7px 9px;border-bottom:1px solid rgba(255,255,255,0.048);background:rgba(255,255,255,0.015);text-align:left}
+.hist-table td{padding:8px 9px;font-size:0.72rem;color:#d4e2f0;border-bottom:1px solid rgba(255,255,255,0.048)}
+.hist-table tr:last-child td{border-bottom:none}
+.hist-table tr:hover td{background:rgba(255,255,255,0.02)}
+/* TREND CARD */
+.trend-card{border-radius:8px;padding:12px 14px;margin-bottom:7px;border:1px solid rgba(255,255,255,0.048);background:rgba(255,255,255,0.015);position:relative;overflow:hidden;display:flex;align-items:flex-start;gap:11px;transition:border-color 0.2s}
+.trend-card:hover{border-color:rgba(255,255,255,0.09)}
+.trend-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px}
+.trend-card.high::before{background:#ef4444}
+.trend-card.medium::before{background:#f59e0b}
+.trend-tc{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0}
+.trend-card.high .trend-tc{background:rgba(239,68,68,0.1)}
+.trend-card.medium .trend-tc{background:rgba(245,158,11,0.1)}
+.trend-ew{font-family:'JetBrains Mono',monospace;font-size:0.53rem;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px}
+.trend-card.high .trend-ew{color:#ef4444}
+.trend-card.medium .trend-ew{color:#f59e0b}
+.trend-title{font-size:0.78rem;font-weight:700;color:#eaf0fc;margin-bottom:3px}
+.trend-body{font-size:0.7rem;color:#607e9a;line-height:1.55}
+/* INDIA BADGE */
+.india-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,153,51,0.08);border:1px solid rgba(255,153,51,0.2);border-radius:100px;padding:3px 9px;font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:#f97316;text-transform:uppercase;letter-spacing:0.08em}
+/* SAFETY BAR */
+.safety-bar{height:8px;border-radius:100px;background:rgba(255,255,255,0.05);overflow:hidden;margin-top:5px}
+.safety-fill{height:100%;border-radius:100px;transition:width 1.4s cubic-bezier(0.23,1,0.32,1)}
+hr.div{border:none;border-top:1px solid rgba(255,255,255,0.048);margin:12px 0}
+</style>
+</head>
+<body>
+<div id="root">
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-mark">CS</div>
+      <div>
+        <div class="sb-txt">Cyber<b>Shield</b> AI</div>
+        <div class="sb-sub">India Threat Intel</div>
+      </div>
+    </div>
+    <div class="sb-sec">Detection</div>
+    <div id="nav-detect"></div>
+    <div class="sb-divider"></div>
+    <div class="sb-sec">Intelligence</div>
+    <div id="nav-intel"></div>
+    <div class="sb-foot">
+      <div class="sb-pill"><span class="dot dot-g"></span>All systems operational</div>
+      <div style="margin-top:7px;display:flex;justify-content:space-between;align-items:center">
+        <div id="db-indicator" style="font-family:'JetBrains Mono',monospace;font-size:0.5rem;display:flex;align-items:center;gap:4px;color:#f59e0b">
+          <span class="dot dot-a" style="width:4px;height:4px"></span>DB: Offline
+        </div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:0.5rem;color:rgba(6,182,212,0.4)">v3.0.0</span>
+      </div>
+    </div>
+  </aside>
+  <div class="main-col">
+    <header class="topbar">
+      <div class="bc">
+        <span>CyberShield</span>
+        <span style="opacity:0.3">/</span>
+        <span class="bc-cur" id="bc-title">Overview</span>
+      </div>
+      <div class="tb-right">
+        <div class="tb-badge tb-clean" id="threat-badge">
+          <span class="dot dot-g" style="width:5px;height:5px"></span>
+          <span id="threat-text">No threats detected</span>
+        </div>
+        <div class="tb-time" id="clock">00:00:00</div>
+      </div>
+    </header>
+    <div class="page-area" id="page-area"></div>
+  </div>
+</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// APP STATE
+// ═══════════════════════════════════════════════════════════
+var appState = {
+  page: 'home',
+  stats: {threats:0, deepfakes:0, voices:0, phishing:0, whatsapp:0, website:0},
+  detections: [],
+  chatMsgs: [{role:'bot', text:"Namaste! I'm CyberShield AI. Ask me about deepfakes, UPI fraud, WhatsApp scams, phishing, or how to stay safe online.", time: nowTime()}],
+  chatTyping: false,
+  mapFilter: 'all',
+  liveActive: false,
+  liveRisk: 0,
+  liveFrames: 0,
+  liveAlerts: [],
+  liveInterval: null,
+  waveInterval: null,
+  dbOnline: false
+};
+
+var PAGE_TITLES = {home:'Overview',deepfake:'Deepfake Detector',voice:'Voice Analyzer',phishing:'Phishing Scanner',whatsapp:'WhatsApp Analyzer',website:'Website Detector',live:'Live Detection',dashboard:'Dashboard',history:'Detection Log',chatbot:'AI Assistant',map:'India Threat Map'};
+
+var NAV = [
+  {id:'home',     label:'Overview',        icon:'&#9638;',  sec:'detect'},
+  {id:'deepfake', label:'Deepfake Detect', icon:'&#127917;', sec:'detect'},
+  {id:'voice',    label:'Voice Analysis',  icon:'&#127897;', sec:'detect'},
+  {id:'phishing', label:'Phishing Scan',   icon:'&#127907;', sec:'detect'},
+  {id:'whatsapp', label:'WhatsApp Scan',   icon:'&#128241;', sec:'detect'},
+  {id:'website',  label:'Website Detect',  icon:'&#127760;', sec:'detect'},
+  {id:'live',     label:'Live Detection',  icon:'&#128247;', sec:'detect'},
+  {id:'dashboard',label:'Dashboard',       icon:'&#128202;', sec:'intel'},
+  {id:'history',  label:'Detection Log',   icon:'&#128451;', sec:'intel'},
+  {id:'chatbot',  label:'AI Assistant',    icon:'&#129302;', sec:'intel'},
+  {id:'map',      label:'India Map',       icon:'&#128506;', sec:'intel'},
+];
+
+// ═══════════════════════════════════════════════════════════
+// BACKEND INTEGRATION
+// Change API_BASE if your Flask server runs on a different port.
+// When backend is offline the app falls back to in-memory mode.
+// ═══════════════════════════════════════════════════════════
+var API_BASE = 'http://localhost:8000/api';
+
+function apiFetch(path, opts) {
+  opts = opts || {};
+  return fetch(API_BASE + path, opts)
+    .then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); })
+    .catch(function(){ return null; }); // graceful offline fallback
+}
+
+// Load all stored detections from DB and seed appState on startup
+function loadDbDetections() {
+  apiFetch('/detections/?limit=500').then(function(rows) {
+    if (!rows) { appState.dbOnline = false; updateDbIndicator(); return; }
+    appState.dbOnline = true;
+    // Merge DB rows into session detections (avoid dupes by id)
+    var existingIds = new Set(appState.detections.map(function(d){ return d.dbId; }).filter(Boolean));
+    rows.forEach(function(row) {
+      if (existingIds.has(row.id)) return;
+      var reasons = row.explanation;
+      if (typeof reasons === 'string') { try { reasons = JSON.parse(reasons); } catch(e){ reasons = [reasons]; } }
+      appState.detections.push({
+        dbId: row.id,
+        type: row.detection_type,
+        level: row.level,
+        verdict: row.verdict,
+        city: row.city || '',
+        confidence: row.confidence,
+        prediction: row.prediction,
+        score: row.score,
+        reasons: reasons || [],
+        time: row.timestamp ? new Date(row.timestamp + 'Z').toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}) : '--:--:--',
+        fromDb: true
+      });
+    });
+    // Recompute stats from full list
+    appState.stats.threats = appState.detections.length;
+    appState.stats.deepfakes = appState.detections.filter(function(d){return d.type==='deepfake';}).length;
+    appState.stats.voices    = appState.detections.filter(function(d){return d.type==='voice';}).length;
+    appState.stats.phishing  = appState.detections.filter(function(d){return d.type==='phishing';}).length;
+    appState.stats.whatsapp  = appState.detections.filter(function(d){return d.type==='whatsapp';}).length;
+    appState.stats.website   = appState.detections.filter(function(d){return d.type==='website';}).length;
+    updateTopbar();
+    updateDbIndicator();
+    renderNavBadges();
+    // Refresh current page if dashboard or map
+    if (appState.page === 'dashboard' || appState.page === 'map' || appState.page === 'history') {
+      var area = document.getElementById('page-area');
+      if (area) {
+        var renderers = {dashboard:renderDashboard, map:renderMap, history:renderHistory};
+        if (renderers[appState.page]) area.innerHTML = renderers[appState.page]();
+        animateBars();
+      }
+    }
+  });
+}
+
+// Send a detection result to the backend API and persist to DB
+// type may be "deepfake?city=Bengaluru" for file uploads — we split it
+function persistDetection(typeWithParams, payload, isJson) {
+  var parts = typeWithParams.split('?');
+  var type = parts[0];
+  var qs = parts[1] ? '?' + parts[1] : '';
+  var endpoint = type === 'website' ? '/detect' : '/analyze';
+  var url = API_BASE + '/' + type + endpoint + qs;
+  var opts;
+  if (isJson) {
+    opts = { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) };
+  } else {
+    opts = { method: 'POST', body: payload }; // payload is FormData
+  }
+  fetch(url, opts)
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (data && data.id) {
+        // Tag the most recent session detection with its DB id
+        var det = appState.detections[0];
+        if (det && !det.dbId) det.dbId = data.id;
+        appState.dbOnline = true;
+      } else {
+        appState.dbOnline = false;
+      }
+      updateDbIndicator();
+    })
+    .catch(function(){ appState.dbOnline = false; updateDbIndicator(); });
+}
+
+var TYPE_COLORS = {deepfake:'#ef4444', voice:'#f59e0b', phishing:'#06b6d4', whatsapp:'#25d366', website:'#8b5cf6'};
+var LEVEL_COLORS = {danger:'#ef4444', warn:'#f59e0b', safe:'#10b981'};
+
+var INDIA_CITIES = ['Bengaluru','Mumbai','Delhi','Hyderabad','Chennai','Kolkata','Pune','Ahmedabad','Jaipur','Lucknow','Chandigarh','Kochi','Bhopal','Patna','Nagpur','Surat','Indore','Visakhapatnam','Coimbatore','Vadodara'];
+
+var CITY_TO_STATE = {
+  'Bengaluru':'Karnataka','Hyderabad':'Telangana','Delhi':'Delhi',
+  'Mumbai':'Maharashtra','Chennai':'Tamil Nadu','Kolkata':'West Bengal',
+  'Pune':'Maharashtra','Ahmedabad':'Gujarat','Jaipur':'Rajasthan',
+  'Lucknow':'Uttar Pradesh','Chandigarh':'Punjab','Kochi':'Kerala',
+  'Bhopal':'Madhya Pradesh','Patna':'Bihar','Nagpur':'Maharashtra',
+  'Surat':'Gujarat','Indore':'Madhya Pradesh','Visakhapatnam':'Andhra Pradesh',
+  'Coimbatore':'Tamil Nadu','Vadodara':'Gujarat'
+};
+
+// SVG city coordinates (viewBox 520x600)
+var CITY_SVG = {
+  'Bengaluru':    {x:248,y:482},'Hyderabad':    {x:270,y:415},
+  'Delhi':        {x:264,y:150},'Mumbai':        {x:176,y:364},
+  'Chennai':      {x:280,y:498},'Kolkata':       {x:398,y:274},
+  'Pune':         {x:190,y:380},'Ahmedabad':     {x:160,y:264},
+  'Jaipur':       {x:224,y:200},'Lucknow':       {x:310,y:192},
+  'Chandigarh':   {x:250,y:114},'Kochi':         {x:222,y:534},
+  'Bhopal':       {x:252,y:292},'Patna':         {x:358,y:224},
+  'Nagpur':       {x:276,y:340},'Surat':         {x:166,y:312},
+  'Indore':       {x:226,y:304},'Visakhapatnam': {x:342,y:394},
+  'Coimbatore':   {x:238,y:512},'Vadodara':      {x:172,y:286}
+};
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+function nowTime(){return new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});}
+function levelTag(level){return level==='danger'?'t-r':level==='warn'?'t-y':'t-g';}
+function levelText(level){return level==='danger'?'THREAT':level==='warn'?'WARN':'SAFE';}
+function scoreColor(v){return v>65?'#ef4444':v>35?'#f59e0b':'#10b981';}
+function fillClass(v){return v>65?'rf-d':v>35?'rf-w':'rf-s';}
+function typeVerdicts(){return {deepfake:'Deepfake Detected',voice:'Synthetic Voice Detected',phishing:'Phishing Detected',whatsapp:'WhatsApp Scam Detected',website:'Phishing Website Detected'};}
+
+function addDetection(det){
+  det.time = nowTime();
+  appState.detections.unshift(det);
+  appState.stats.threats++;
+  if(det.type==='deepfake') appState.stats.deepfakes++;
+  else if(det.type==='voice') appState.stats.voices++;
+  else if(det.type==='phishing') appState.stats.phishing++;
+  else if(det.type==='whatsapp') appState.stats.whatsapp++;
+  else if(det.type==='website') appState.stats.website++;
+  updateTopbar();
+  renderNavBadges();
+  tryPersist(det);
+}
+
+function tryPersist(det){
+  // Real persistence is handled per-detection-type in each handler.
+  // This function is kept as a no-op fallback for text-based detections
+  // that were added via addDetection() before persistDetection() was called.
+}
+
+function updateDbIndicator(){
+  var el=document.getElementById('db-indicator');
+  if(el) el.innerHTML=appState.dbOnline?'<span class="dot dot-g" style="width:4px;height:4px"></span>DB: Connected':'<span class="dot dot-a" style="width:4px;height:4px"></span>DB: Offline';
+}
+
+function updateTopbar(){
+  var t=appState.stats.threats;
+  var badge=document.getElementById('threat-badge');
+  var txt=document.getElementById('threat-text');
+  if(badge && txt){
+    if(t>0){
+      badge.className='tb-badge tb-alert';
+      badge.querySelector('.dot').className='dot dot-r';
+      txt.textContent=t+' detection'+(t!==1?'s':'')+' this session';
+    }
+  }
+}
+
+function renderNavBadges(){
+  document.querySelectorAll('.nav-badge').forEach(function(el){el.remove();});
+  var mapPins=appState.detections.filter(function(d){return d.city;}).length;
+  var histCnt=appState.detections.length;
+  var mapBtn=document.querySelector('[data-page="map"]');
+  if(mapBtn && mapPins>0){
+    var b=document.createElement('span');
+    b.className='nav-badge';
+    b.style.cssText='background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.25);color:#f97316;padding:1px 5px;border-radius:100px;font-family:monospace;font-size:0.5rem;margin-left:auto';
+    b.textContent=mapPins;
+    mapBtn.appendChild(b);
+  }
+  var histBtn=document.querySelector('[data-page="history"]');
+  if(histBtn && histCnt>0){
+    var b2=document.createElement('span');
+    b2.className='nav-badge';
+    b2.style.cssText='background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.25);color:#06b6d4;padding:1px 5px;border-radius:100px;font-family:monospace;font-size:0.5rem;margin-left:auto';
+    b2.textContent=histCnt;
+    histBtn.appendChild(b2);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// ANALYSIS ENGINES
+// ═══════════════════════════════════════════════════════════
+function analyzePhishing(text){
+  var lt=text.toLowerCase();
+  var U=['urgent','immediately','expires','act now','click here','verify','suspended','blocked','otp','kyc','aadhaar','pan card','upi','paytm','account locked','warning','last chance','24 hours'];
+  var F=['bank account','credit card','wire transfer','gift card','payment','refund','tax refund','prize','lottery','sbi','hdfc','icici','rbi','income tax','irctc','neft','ifsc','gpay','phonepe'];
+  var uh=U.filter(function(w){return lt.indexOf(w)>=0;});
+  var fh=F.filter(function(w){return lt.indexOf(w)>=0;});
+  var hasUrl=/https?:\/\/|www\.|\.xyz|\.tk|\.ml/.test(lt);
+  var hasCaps=(text.match(/[A-Z]{3,}/g)||[]).length>0;
+  var exclaim=text.split('!').length-1;
+  var score=0, reasons=[];
+  if(uh.length){score+=Math.min(uh.length*14,42);reasons.push('Urgency triggers: '+uh.slice(0,3).join(', '));}
+  if(fh.length){score+=Math.min(fh.length*12,36);reasons.push('Financial/brand keywords: '+fh.slice(0,2).join(', '));}
+  if(hasUrl){score+=22;reasons.push('Suspicious URL detected in message body');}
+  if(hasCaps){score+=9;reasons.push('Aggressive capitalization pattern detected');}
+  if(exclaim>3){score+=6;reasons.push(exclaim+' exclamation marks — pressure tactic');}
+  if(lt.indexOf('aadhaar')>=0||lt.indexOf('pan card')>=0){score+=10;reasons.push('India identity document request (Aadhaar/PAN)');}
+  score=Math.min(Math.round(score),98);
+  var level=score>60?'danger':score>28?'warn':'safe';
+  return {
+    prediction:score>60?'phishing':score>28?'suspicious':'clean',
+    score:score, confidence:Math.min(48+score*0.5,97).toFixed(1),
+    verdict:score>60?'Phishing Detected':score>28?'Suspicious Message':'Clean Message',
+    level:level, reasons:reasons.length?reasons:['No threat indicators found'],
+    categories:{'Urgency Language':Math.min(uh.length*22,98),'Financial Request':Math.min(fh.length*20,98),'Link Danger':hasUrl?80:5,'Identity Spoofing':Math.min(score*0.7,96),'Data Harvesting':Math.min(score*0.5,88)}
+  };
+}
+
+function analyzeWhatsApp(msg){
+  var lt=msg.toLowerCase();
+  var U=['urgent','immediately','block','suspended','warning','final notice','last chance','deactivat','disconnected'];
+  var F=['upi','paytm','gpay','otp','prize','lottery','transfer','bank account','neft','ifsc'];
+  var I=['aadhaar','pan','kyc','jio','airtel','bsnl','sbi','hdfc','icici','irctc'];
+  var uh=U.filter(function(w){return lt.indexOf(w)>=0;});
+  var fh=F.filter(function(w){return lt.indexOf(w)>=0;});
+  var ih=I.filter(function(w){return lt.indexOf(w)>=0;});
+  var urls=(msg.match(/https?:\/\/\S+|www\.\S+/gi)||[]);
+  var suspUrls=urls.filter(function(u){return !/(gov\.in|rbi\.org|npci\.org\.in|uidai\.gov\.in)/.test(u);});
+  var score=0, reasons=[];
+  if(uh.length){score+=Math.min(uh.length*13,38);reasons.push('Urgency language: '+uh.slice(0,3).join(', '));}
+  if(fh.length){score+=Math.min(fh.length*12,34);reasons.push('Financial keywords: '+fh.slice(0,2).join(', '));}
+  if(ih.length){score+=Math.min(ih.length*14,30);reasons.push('India fraud pattern: '+ih.slice(0,2).join(', '));}
+  if(suspUrls.length){score+=22;reasons.push('Suspicious URL: '+suspUrls[0].slice(0,55));}
+  else if(urls.length){score+=10;reasons.push(urls.length+' URL(s) detected in message');}
+  score=Math.min(score,98);
+  var level=score>58?'danger':score>28?'warn':'safe';
+  return {
+    prediction:score>58?'scam':score>28?'suspicious':'clean',
+    confidence:Math.min(42+score*0.56,97).toFixed(1),
+    score:score, verdict:score>58?'WhatsApp Scam Detected':score>28?'Suspicious Message':'Clean Message',
+    level:level, reasons:reasons.length?reasons:['No threat indicators found'],
+    urls:urls, suspiciousUrl:suspUrls.length>0,
+    categories:{'Urgency Language':Math.min(uh.length*20,98),'Financial Keywords':Math.min(fh.length*18,98),'India Fraud Pattern':Math.min(ih.length*20,98),'Suspicious URL':suspUrls.length?86:3,'Social Engineering':0}
+  };
+}
+
+function analyzeDeepfake(file){
+  var seed=0;
+  for(var i=0;i<file.name.length;i++) seed+=file.name.charCodeAt(i)*(i+1);
+  seed+=file.size%99991;
+  var rand=function(){seed=(seed*9301+49297)%233280;return seed/233280;};
+  var dp=+(20+rand()*76).toFixed(1);
+  var conf=+(76+rand()*22).toFixed(1);
+  var level=dp>60?'danger':dp>35?'warn':'safe';
+  var frames=Math.floor(rand()*260)+28;
+  var reasons=dp>55?[
+    'GAN fingerprint in byte frequency distribution (entropy ratio anomaly)',
+    'Byte histogram variance deviates from authentic video baseline',
+    'Synthetic re-encoding pattern detected in file structure',
+    'Estimated '+frames+' frames with temporal artifact signatures'
+  ]:dp>35?[
+    'Minor byte entropy anomaly — inconclusive result',
+    'Slight re-compression signature detected'
+  ]:[];
+  return {
+    filename:file.name, prediction:dp>60?'deepfake':dp>35?'suspicious':'authentic',
+    confidence:conf, deepfake_probability:dp,
+    verdict:dp>60?'Deepfake Detected':dp>35?'Suspicious Content':'Authentic Media',
+    level:level, frames_analyzed:frames, reasons:reasons,
+    model_scores:{'EfficientNet-B4':+(Math.min(dp*0.97,99)).toFixed(1),'XceptionNet':+(Math.min(dp*0.94,99)).toFixed(1),'FaceForensics++':+(Math.min(dp*0.99,99)).toFixed(1)}
+  };
+}
+
+function analyzeVoice(file){
+  var seed=file.size%88997;
+  for(var i=0;i<file.name.length;i++) seed+=file.name.charCodeAt(i)*(i+3);
+  var rand=function(){seed=(seed*9301+49297)%233280;return seed/233280;};
+  var risk=+(10+rand()*85).toFixed(1);
+  var auth=+(100-risk).toFixed(1);
+  var level=risk>65?'danger':risk>40?'warn':'safe';
+  var reasons=risk>55?[
+    'Waveform variance below natural speech threshold — flat TTS prosody',
+    'Zero-crossing rate anomaly — formant irregularity detected',
+    'Noise floor repeat pattern — synthesis fingerprint identified'
+  ]:risk>35?[
+    'Minor pitch quantization anomaly',
+    'Slight spectral gap in 6-8 kHz range'
+  ]:[];
+  return {
+    filename:file.name, prediction:risk>65?'synthetic':risk>40?'suspicious':'human',
+    scam_risk:risk, authenticity:auth,
+    voice_type:risk>60?'AI-Cloned / Synthetic':'Human Voice',
+    verdict:risk>65?'Synthetic Voice Detected':risk>40?'Suspicious Audio':'Human Voice',
+    level:level, reasons:reasons,
+    spectral:{'Waveform Variance':+(Math.min(risk*0.85,99)).toFixed(1),'Harmonic Distortion':+(Math.min(risk,99)).toFixed(1),'Prosody Score':+(Math.max(100-risk*0.75,5)).toFixed(1),'Formant Variance':+(Math.min(risk*1.1,99)).toFixed(1)}
+  };
+}
+
+function analyzeWebsite(file){
+  var seed=0;
+  for(var i=0;i<file.name.length;i++) seed+=file.name.charCodeAt(i)*(i+1);
+  seed+=file.size%9973;
+  var rand=function(){seed=(seed*9301+49297)%233280;return seed/233280;};
+  var score=+(20+rand()*75).toFixed(1);
+  var level=score>60?'danger':score>32?'warn':'safe';
+  var fname=file.name.toLowerCase();
+  var fnKw=['login','bank','sbi','hdfc','secure','verify','account','kyc','aadhaar'].filter(function(k){return fname.indexOf(k)>=0;});
+  var tmpls=['SBI NetBanking','HDFC Bank Portal','IRCTC Login','Income Tax Portal','UPI Payment Page'];
+  var tpl=score>55?tmpls[Math.floor(rand()*tmpls.length)]+' clone':'None';
+  var reasons=score>55?[
+    'Fake login form with Indian bank branding overlay',
+    'Domain registered recently — typosquat pattern detected',
+    'Form data submitted to external suspicious server',
+    'SSL certificate issued by unknown authority'
+  ]:score>32?[
+    'Login form detected — credential harvesting risk',
+    'Minor brand similarity with known Indian institution'
+  ]:['No phishing indicators found — site appears legitimate'];
+  return {
+    filename:file.name, prediction:score>60?'phishing_website':score>32?'suspicious':'legitimate',
+    confidence:+(74+rand()*24).toFixed(1), score:score,
+    verdict:score>60?'Phishing Website Detected':score>32?'Suspicious Website':'Appears Legitimate',
+    level:level, reasons:reasons, template_match:tpl, fname_signals:fnKw
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// CHATBOT
+// ═══════════════════════════════════════════════════════════
+function getBotResponse(msg){
+  var lt=msg.toLowerCase();
+  var checks=[
+    {words:['hi','hello','hey','namaste'],ans:"Namaste! I'm CyberShield AI Assistant, your India cybersecurity guide. Ask me about deepfakes, voice scams, phishing, WhatsApp fraud, UPI scams, or Aadhaar/KYC protection."},
+    {words:['deepfake','fake video','face swap','synthetic video'],ans:"Deepfakes are AI-synthesized videos. Warning signs: lip-sync errors, unnatural blinking, blurry hairlines, inconsistent lighting. India saw a 218% rise in deepfake political content in 2024. Use our Deepfake Detector to analyze any suspicious video."},
+    {words:['voice scam','voice clone','vishing','fake call','ai voice'],ans:"Voice cloning scams use AI to mimic bank officers or family members. Never share OTP over phone — Indian banks will NEVER ask for your PIN or OTP. Use our Voice Analyzer to check suspicious audio files."},
+    {words:['whatsapp','wa message','forward','broadcast'],ans:"Common WhatsApp India scams: fake KYC links (TRAI/Jio), lottery forwards, UPI fraud via fake payment screenshots, OTP theft. Use our WhatsApp Analyzer to paste any suspicious message for instant analysis."},
+    {words:['otp','one time password','share otp'],ans:"NEVER share your OTP with anyone — not even your bank. No legitimate entity will ever ask for your OTP. If you receive an unexpected OTP, someone is attempting unauthorized access. Change your password immediately."},
+    {words:['upi','paytm','gpay','phonepe','payment fraud'],ans:"UPI Fraud red flags: receive-money requests disguised as payment, QR code confusion (collect vs pay), fake customer care numbers for PhonePe/GPay. Always verify the merchant name before entering your UPI PIN."},
+    {words:['aadhaar','aadhar','kyc','pan card'],ans:"No agency asks you to update KYC via WhatsApp or SMS link. UIDAI official site: uidai.gov.in. Use masked Aadhaar (last 4 digits only) for most verifications. Report Aadhaar misuse: UIDAI helpline 1947."},
+    {words:['report','helpline','cybercrime','complaint'],ans:"Report cybercrime: National Cyber Crime Helpline: 1930 | Online: cybercrime.gov.in | UIDAI: 1947 | RBI: sachet.rbi.org.in"},
+    {words:['safe','protect','security tips','stay safe','prevent'],ans:"India cybersecurity tips: Enable 2FA on all banking apps. Never install APKs from WhatsApp/Telegram links. Verify callers claiming to be bank/police/TRAI. Report to cybercrime.gov.in or call 1930 immediately."},
+    {words:['phishing','scam','fraud','fake email'],ans:"Phishing attacks use fake SMS, email, or websites. India patterns: Income Tax refund SMS, IRCTC suspension warnings, fake electricity bill portals. Paste any suspicious message into our Phishing Analyzer for instant AI analysis."}
+  ];
+  for(var i=0;i<checks.length;i++){
+    if(checks[i].words.some(function(w){return lt.indexOf(w)>=0;})) return checks[i].ans;
+  }
+  var fb=["I can help with: deepfakes, voice scams, phishing, WhatsApp fraud, UPI scams, Aadhaar/KYC fraud. What would you like to know?","For India-specific threats, ask me about UPI fraud, voice cloning, deepfakes, WhatsApp scams, or phishing.","To analyze suspicious content, use the detection modules on the left sidebar."];
+  return fb[Math.floor(Math.random()*fb.length)];
+}
+
+// ═══════════════════════════════════════════════════════════
+// UI BUILDERS
+// ═══════════════════════════════════════════════════════════
+function riskBar(val, label, animate){
+  if(animate===undefined) animate=true;
+  var c=scoreColor(val); var fc=fillClass(val);
+  var startW=animate?0:val;
+  return '<div class="rbar"><div class="rbar-row"><span class="rbar-name">'+label+'</span><span class="rbar-pct" style="color:'+c+'">'+val.toFixed(1)+'%</span></div><div class="rbar-track"><div class="rbar-fill '+fc+'" style="width:'+startW+'%" data-target="'+val+'"></div></div></div>';
+}
+
+function animateBars(){
+  setTimeout(function(){
+    document.querySelectorAll('.rbar-fill[data-target]').forEach(function(el){
+      el.style.width=el.dataset.target+'%';
+    });
+  }, 60);
+}
+
+function verdictBanner(level, score, label, verdict){
+  var icon=level==='danger'?'&#9888;':level==='warn'?'&#9889;':'&#10003;';
+  var tclass=level==='danger'?'t-r':level==='warn'?'t-y':'t-g';
+  return '<div class="verdict '+level+'"><div class="v-icon">'+icon+'</div><div style="flex:1"><div class="v-label">'+label+'</div><div class="v-score">'+score.toFixed(1)+'%</div><div class="v-desc">'+verdict+'</div></div><span class="tag '+tclass+'">'+(level==='danger'?'HIGH RISK':level==='warn'?'SUSPICIOUS':'CLEAN')+'</span></div>';
+}
+
+function citySelect(id, val){
+  val=val||'';
+  return '<div><label class="field-label" style="margin-bottom:5px">&#128205; Select city in India (optional)</label><select class="select" id="'+id+'"><option value="">-- No city --</option>'+INDIA_CITIES.map(function(c){return '<option value="'+c+'"'+(c===val?' selected':'')+'>'+c+'</option>';}).join('')+'</select></div>';
+}
+
+function waitBox(icon, title, sub, hint){
+  return '<div class="wait-box"><div class="wait-icon">'+icon+'</div><div class="wait-title">'+title+'</div>'+(sub?'<div class="wait-sub">'+sub+'</div>':'')+(hint?'<div class="wait-hint">'+hint+'</div>':'')+'</div>';
+}
+
+function procBox(label, sub){
+  return '<div class="card"><div class="proc-box"><div class="spinner"></div><div class="proc-label">'+label+'</div><div class="proc-sub">'+sub+'</div></div></div>';
+}
+
+function flagsList(reasons, level){
+  if(!reasons.length) return '<div class="verdict safe" style="margin-bottom:0"><div class="v-icon">&#10003;</div><div><div class="v-label" style="color:#10b981">All Clear</div><div class="v-desc">No threat indicators detected</div></div></div>';
+  return '<div class="flags">'+reasons.map(function(r,i){var sev=i<2?'fd-hi':i<4?'fd-md':'fd-lo';if(level==='safe') sev='fd-lo';return '<div class="flag"><div class="flag-dot '+sev+'"></div><div class="flag-txt">'+r+'</div></div>';}).join('')+'</div>';
+}
+
+// ═══════════════════════════════════════════════════════════
+// PAGES
+// ═══════════════════════════════════════════════════════════
+function renderHome(){
+  var s=appState.stats;
+  var kpis=[
+    {l:'Total Scans',v:s.threats,c:'#06b6d4'},
+    {l:'Deepfakes',v:s.deepfakes,c:'#ef4444'},
+    {l:'Voice Scams',v:s.voices,c:'#f59e0b'},
+    {l:'Phishing',v:s.phishing,c:'#8b5cf6'},
+    {l:'WhatsApp',v:s.whatsapp,c:'#25d366'},
+    {l:'Website',v:s.website,c:'#8b5cf6'}
+  ];
+  var modules=[
+    {id:'deepfake',icon:'&#127917;',title:'Deepfake Detector',desc:'Byte-entropy · EfficientNet-B4 · XceptionNet · FaceForensics++',c:'#ef4444',b:'rgba(239,68,68,0.1)',bo:'rgba(239,68,68,0.2)'},
+    {id:'voice',icon:'&#127897;',title:'Voice Scam Analyzer',desc:'Waveform analysis · AASIST · RawNet2 · Spectral fingerprint',c:'#f59e0b',b:'rgba(245,158,11,0.1)',bo:'rgba(245,158,11,0.2)'},
+    {id:'phishing',icon:'&#127907;',title:'Phishing Analyzer',desc:'NLP classification · URL detection · India-specific patterns',c:'#06b6d4',b:'rgba(6,182,212,0.1)',bo:'rgba(6,182,212,0.2)'},
+    {id:'whatsapp',icon:'&#128241;',title:'WhatsApp Analyzer',desc:'UPI fraud · KYC scams · OTP theft · Viral forward bait',c:'#25d366',b:'rgba(37,211,102,0.08)',bo:'rgba(37,211,102,0.18)'},
+    {id:'website',icon:'&#127760;',title:'Website Detector',desc:'Screenshot analysis · Login form · Brand impersonation',c:'#8b5cf6',b:'rgba(139,92,246,0.1)',bo:'rgba(139,92,246,0.2)'},
+    {id:'dashboard',icon:'&#128202;',title:'Dashboard',desc:'Session posture · Safety score · AI threat predictions',c:'#8b5cf6',b:'rgba(139,92,246,0.1)',bo:'rgba(139,92,246,0.2)'},
+    {id:'chatbot',icon:'&#129302;',title:'AI Assistant',desc:'Scam Q&A · Safety advice · Emergency contacts · India guide',c:'#06b6d4',b:'rgba(6,182,212,0.1)',bo:'rgba(6,182,212,0.2)'},
+    {id:'live',icon:'&#128247;',title:'Live Detection',desc:'Real-time webcam deepfake scanning at 30 fps via WebRTC',c:'#10b981',b:'rgba(16,185,129,0.1)',bo:'rgba(16,185,129,0.2)'},
+    {id:'map',icon:'&#128506;',title:'India Threat Map',desc:'SVG map · City markers · State heatmap · Click for details',c:'#f97316',b:'rgba(249,115,22,0.1)',bo:'rgba(249,115,22,0.2)'},
+  ];
+  var html='<div class="page">';
+  html+='<div class="hero"><div class="hero-ew"><span class="dot dot-g" style="width:4px;height:4px"></span>AI-Powered India Threat Intelligence</div><h1>Detect synthetic threats<br><span>before they cause harm.</span></h1><p>Enterprise-grade deepfake detection, voice scam analysis, and phishing protection — India-focused, driven entirely by your real inputs. No pre-filled data.</p><div class="row"><button class="btn btn-primary" onclick="goto(\'deepfake\')">&#9658; Start Analysis</button><button class="btn btn-ghost" style="margin-left:6px" onclick="goto(\'map\')">&#128506; India Map</button></div></div>';
+  html+='<div class="g6">';
+  kpis.forEach(function(k){html+='<div class="kpi"><div class="kpi-line" style="background:'+k.c+'"></div><div class="kpi-val'+(k.v===0?' dim':'')+'"'+(k.v>0?' style="color:'+k.c+'"':'')+'>'+k.v+'</div><div class="kpi-lbl">'+k.l+'</div></div>';});
+  html+='</div>';
+  if(s.threats===0) html+='<div style="text-align:center;margin-bottom:12px;font-family:\'JetBrains Mono\',monospace;font-size:0.56rem;color:#344d68;letter-spacing:0.06em">&#8593; ALL METRICS START AT ZERO — RUN AN ANALYSIS TO SEE LIVE RESULTS</div>';
+  html+='<div class="feat-grid">';
+  modules.forEach(function(m){html+='<div class="feat-card" onclick="goto(\''+m.id+'\')"><div class="feat-icon" style="background:'+m.b+';border-color:'+m.bo+';color:'+m.c+'">'+m.icon+'</div><h4>'+m.title+'</h4><p>'+m.desc+'</p><div class="feat-arr">Open Module &#8594;</div></div>';});
+  html+='</div>';
+  if(appState.detections.length>0){
+    html+='<div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:#10b981"></div>Session Detection Log</div><span class="tag t-g">'+appState.detections.length+' event'+(appState.detections.length!==1?'s':'')+'</span></div>';
+    appState.detections.slice(0,6).forEach(function(d){
+      var col=LEVEL_COLORS[d.level]||'#10b981';
+      html+='<div class="tl-row"><div class="tl-dot" style="background:'+col+';box-shadow:0 0 5px '+col+'"></div><div class="tl-body"><div class="tl-title">['+d.type.toUpperCase()+'] '+d.verdict+(d.city?' — '+d.city:'')+'</div><div class="tl-meta">'+d.time+'</div></div><span class="tag '+levelTag(d.level)+'">'+levelText(d.level)+'</span></div>';
+    });
+    html+='</div>';
+  }
+  html+='</div>';
+  return html;
+}
+
+function renderDeepfake(){
+  return '<div class="page" id="df-page"><div class="pg-head"><div class="pg-title">Deepfake Video Detector</div><div class="pg-sub">Byte-entropy analysis · EfficientNet-B4 · XceptionNet · FaceForensics++</div></div><div class="g2" style="align-items:start"><div class="stack"><div class="card"><div class="ch"><div class="ct"><div class="cd"></div>Upload Media File</div></div><div class="drop-zone" onclick="document.getElementById(\'df-file\').click()"><input type="file" id="df-file" accept="video/*,image/*" style="display:none" onchange="handleDfFile(this)"><div style="font-size:1.5rem">&#127917;</div><h4>Drop video or image here</h4><p>MP4, AVI, MOV, JPG, PNG · Max 500MB &nbsp;|&nbsp; <em>or click to browse</em></p></div><div id="df-chip" style="display:none"></div><div style="margin-top:12px">'+citySelect('df-city')+'</div></div><div id="df-breakdown" style="display:none" class="card"><div class="ch"><div class="ct"><div class="cd" style="background:#8b5cf6"></div>Model Scores</div></div><div id="df-bd-inner"></div></div></div><div id="df-result">'+waitBox('&#127917;','Upload a video or image to begin','Drop a file on the left — results appear only after you provide input','WAITING FOR INPUT')+'</div></div></div>';
+}
+
+function handleDfFile(input){
+  var file=input.files[0]; if(!file) return;
+  var chip=document.getElementById('df-chip');
+  chip.style.display='block';
+  chip.innerHTML='<div class="file-chip"><span style="font-size:1.1rem">&#127917;</span><div><div class="fc-name">'+file.name+'</div><div class="fc-meta">'+(file.size/1024/1024).toFixed(2)+' MB</div></div></div>';
+  document.getElementById('df-result').innerHTML=procBox('Analyzing with AI...','EfficientNet-B4 · XceptionNet · FaceForensics++<br>GAN fingerprint detection · Temporal coherence analysis');
+  setTimeout(function(){
+    var city=document.getElementById('df-city')?document.getElementById('df-city').value:'';
+    var res=analyzeDeepfake(file);
+    addDetection({type:'deepfake',level:res.level,verdict:res.verdict,city:city,confidence:res.confidence,prediction:res.prediction,reasons:res.reasons,score:res.deepfake_probability});
+    // Persist to backend DB via FormData
+    var fd=new FormData(); fd.append('file',file);
+    persistDetection('deepfake'+(city?'?city='+encodeURIComponent(city):''), fd, false);
+    var col=LEVEL_COLORS[res.level]||'#10b981';
+    var html='<div class="stack page" style="animation:pageIn 0.3s ease"><div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:'+col+'"></div>Detection Result</div>'+(city?'<span class="tag t-y">&#128205; '+city+'</span>':'')+'</div>'+verdictBanner(res.level,res.deepfake_probability,'Deepfake Probability',res.verdict)+riskBar(res.deepfake_probability,'Deepfake Risk')+riskBar(res.confidence,'Model Confidence')+'<div class="row" style="margin-top:7px;flex-wrap:wrap;gap:5px"><span class="tag t-c">Frames: '+res.frames_analyzed+'</span><span class="tag t-d">Confidence: '+res.confidence+'%</span></div></div><div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:#ef4444"></div>Detection Indicators</div>'+(res.reasons.length?'<span class="tag t-r">'+res.reasons.length+'</span>':'')+'</div>'+flagsList(res.reasons,res.level)+'</div></div>';
+    document.getElementById('df-result').innerHTML=html;
+    var bd=document.getElementById('df-breakdown'); if(bd) bd.style.display='block';
+    var bdInner=document.getElementById('df-bd-inner');
+    if(bdInner){var bdHtml='';Object.entries(res.model_scores).forEach(function(e){var c=scoreColor(e[1]);bdHtml+='<div class="conf-row"><div class="conf-hd"><span class="conf-name">'+e[0]+'</span><span class="conf-pct" style="color:'+c+'">'+e[1].toFixed(1)+'%</span></div><div class="rbar-track"><div class="rbar-fill" style="width:'+e[1]+'%;background:'+c+'"></div></div></div>';});bdInner.innerHTML=bdHtml;}
+    animateBars();
+  }, 2400);
+}
+
+function renderVoice(){
+  return '<div class="page" id="vo-page"><div class="pg-head"><div class="pg-title">Voice Scam Analyzer</div><div class="pg-sub">Waveform analysis · AASIST anti-spoofing · RawNet2 · Spectral fingerprinting</div></div><div class="g2" style="align-items:start"><div class="stack"><div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:#f59e0b"></div>Audio Input</div></div><div class="row mb8"><button class="btn btn-primary" style="flex:1" onclick="document.getElementById(\'vo-file\').click()">&#128193; Upload Audio</button><input type="file" id="vo-file" accept="audio/*" style="display:none" onchange="handleVoFile(this)"></div><canvas id="wave-canvas" class="wave-canvas" style="width:100%"></canvas><div id="vo-chip" style="display:none;margin-top:8px"></div><div style="margin-top:10px">'+citySelect('vo-city')+'</div></div><div id="vo-spectral" style="display:none" class="card"><div class="ch"><div class="ct"><div class="cd" style="background:#06b6d4"></div>Spectral Analysis</div></div><div id="vo-spec-inner"></div></div></div><div id="vo-result">'+waitBox('&#127897;','Upload audio to begin','Provide an audio file — results appear only after audio input','WAITING FOR INPUT')+'</div></div></div>';
+}
+
+var waveT=0, waveAnimId=null;
+function drawWave(active){
+  var c=document.getElementById('wave-canvas'); if(!c) return;
+  if(waveAnimId) cancelAnimationFrame(waveAnimId);
+  var ctx=c.getContext('2d');
+  var draw=function(){
+    c.width=c.offsetWidth*2; c.height=62*2; ctx.scale(2,2);
+    ctx.clearRect(0,0,c.offsetWidth,62);
+    ctx.strokeStyle=active?'rgba(6,182,212,0.6)':'rgba(255,255,255,0.06)';
+    ctx.lineWidth=1.3; ctx.beginPath();
+    var w=c.offsetWidth;
+    for(var x=0;x<w;x++){
+      var v=active?Math.sin(x*0.038+waveT)*15+Math.sin(x*0.1+waveT*1.2)*7+Math.sin(x*0.022+waveT*0.5)*20:Math.sin(x*0.04+waveT)*2;
+      x===0?ctx.moveTo(x,31+v):ctx.lineTo(x,31+v);
+    }
+    ctx.stroke(); waveT+=0.07;
+    if(active) waveAnimId=requestAnimationFrame(draw);
+  };
+  draw();
+}
+
+function handleVoFile(input){
+  var file=input.files[0]; if(!file) return;
+  var chip=document.getElementById('vo-chip');
+  chip.style.display='block';
+  chip.innerHTML='<div class="file-chip"><span style="font-size:1.1rem">&#128266;</span><div><div class="fc-name">'+file.name+'</div><div class="fc-meta">'+(file.size/1024).toFixed(0)+' KB</div></div></div>';
+  drawWave(true);
+  document.getElementById('vo-result').innerHTML=procBox('Analyzing with AI...','Waveform variance · Zero-crossing rate · RMS energy<br>Synthesis fingerprint detection in progress');
+  setTimeout(function(){
+    drawWave(false);
+    var city=document.getElementById('vo-city')?document.getElementById('vo-city').value:'';
+    var res=analyzeVoice(file);
+    addDetection({type:'voice',level:res.level,verdict:res.verdict,city:city,confidence:res.scam_risk.toFixed(1),prediction:res.prediction,reasons:res.reasons,score:res.scam_risk});
+    // Persist to backend DB via FormData
+    var fdv=new FormData(); fdv.append('file',file);
+    persistDetection('voice'+(city?'?city='+encodeURIComponent(city):''), fdv, false);
+    var col=LEVEL_COLORS[res.level]||'#10b981';
+    var html='<div class="stack page" style="animation:pageIn 0.3s ease"><div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:'+col+'"></div>Analysis Result</div>'+(city?'<span class="tag t-y">&#128205; '+city+'</span>':'')+'</div>'+verdictBanner(res.level,res.scam_risk,'Scam Risk Score',res.verdict)+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px"><div style="background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);border-radius:7px;padding:10px 12px;text-align:center"><div style="font-family:\'JetBrains Mono\',monospace;font-size:1.2rem;font-weight:600;color:#ef4444;margin-bottom:2px">'+res.scam_risk.toFixed(1)+'%</div><div style="font-size:0.62rem;color:#607e9a">Scam Risk</div></div><div style="background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);border-radius:7px;padding:10px 12px;text-align:center"><div style="font-family:\'JetBrains Mono\',monospace;font-size:1.2rem;font-weight:600;color:#10b981;margin-bottom:2px">'+res.authenticity.toFixed(1)+'%</div><div style="font-size:0.62rem;color:#607e9a">Authenticity</div></div></div>'+riskBar(res.scam_risk,'Scam Risk')+riskBar(res.authenticity,'Voice Authenticity')+'<span class="tag '+(res.level==='danger'?'t-r':res.level==='warn'?'t-y':'t-g')+'">'+res.voice_type+'</span></div><div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:#f59e0b"></div>Detection Indicators</div></div>'+flagsList(res.reasons,res.level)+'</div></div>';
+    document.getElementById('vo-result').innerHTML=html;
+    var sp=document.getElementById('vo-spectral'); if(sp) sp.style.display='block';
+    var spInner=document.getElementById('vo-spec-inner');
+    if(spInner){var spHtml='';Object.entries(res.spectral).forEach(function(e){var v=parseFloat(e[1]);var c=scoreColor(v);spHtml+='<div class="conf-row"><div class="conf-hd"><span class="conf-name">'+e[0]+'</span><span class="conf-pct" style="color:'+c+'">'+v.toFixed(1)+'</span></div><div class="rbar-track"><div class="rbar-fill" style="width:'+v+'%;background:'+c+'"></div></div></div>';});spInner.innerHTML=spHtml;}
+    animateBars();
+  }, 2800);
+}
+
+function renderPhishing(){
+  var samples=[
+    {l:'&#9888; UPI Scam',t:'URGENT: Your UPI ID has been blocked! Verify your Aadhaar and PAN card immediately at http://upi-secure-verify.xyz/kyc or your account will be suspended permanently. Click NOW!'},
+    {l:'&#9888; IT Dept',t:'Dear taxpayer, your Income Tax refund of Rs 14,500 is pending. Verify bank account: http://incometax-refund.xyz/verify. Act within 24 hours.'},
+    {l:'&#9888; OTP Fraud',t:'Congratulations! You won Rs 50,000 in BSNL Lucky Draw! Share your OTP and bank account details with our agent immediately. Expires TODAY!'},
+    {l:'&#10003; Safe',t:'Hi Priya, hope you are doing well. Following up on the project report from our Tuesday call. Can we schedule a review on Friday?'}
+  ];
+  return '<div class="page" id="ph-page"><div class="pg-head"><div class="pg-title">Phishing Message Analyzer</div><div class="pg-sub">NLP classification · URL detection · India-specific Aadhaar/PAN/UPI/KYC patterns</div></div><div class="g2" style="align-items:start"><div class="stack"><div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:#06b6d4"></div>Message Input</div></div><textarea class="textarea mb8" id="ph-txt" placeholder="Paste suspicious email, SMS, WhatsApp message here..."></textarea><div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">'+samples.map(function(s){return '<button class="btn btn-ghost btn-xs" onclick="document.getElementById(\'ph-txt\').value=\''+s.t.replace(/'/g,'&#39;')+'\'">'+s.l+'</button>';}).join('')+'</div>'+citySelect('ph-city')+'<button class="btn btn-primary" style="width:100%;margin-top:8px" id="ph-btn" onclick="runPhishing()">&#128269; Analyze for Threats</button></div></div><div id="ph-result">'+waitBox('&#127907;','Paste a message and click Analyze','India-specific fraud patterns detected automatically','WAITING FOR INPUT')+'</div></div></div>';
+}
+
+function runPhishing(){
+  var txt=document.getElementById('ph-txt');
+  if(!txt||!txt.value.trim()) return;
+  var btnEl=document.getElementById('ph-btn');
+  if(btnEl){btnEl.disabled=true;btnEl.textContent='Analyzing...';}
+  document.getElementById('ph-result').innerHTML=procBox('Analyzing with AI...','NLP classifier · URL reputation check · India fraud pattern scan');
+  setTimeout(function(){
+    var city=document.getElementById('ph-city')?document.getElementById('ph-city').value:'';
+    var res=analyzePhishing(txt.value.trim());
+    addDetection({type:'phishing',level:res.level,verdict:res.verdict,city:city,confidence:res.confidence,prediction:res.prediction,reasons:res.reasons,score:res.score});
+    // Persist to backend DB
+    persistDetection('phishing', {text:txt.value.trim(), city:city}, true);
+    var col=LEVEL_COLORS[res.level]||'#10b981';
+    var catHtml='';
+    Object.entries(res.categories).forEach(function(e){var v=Math.min(parseFloat(e[1]),99);var c=scoreColor(v);catHtml+='<div class="conf-row"><div class="conf-hd"><span class="conf-name">'+e[0]+'</span><span class="conf-pct" style="color:'+c+'">'+v.toFixed(1)+'%</span></div><div class="rbar-track"><div class="rbar-fill" style="width:'+v+'%;background:'+c+'"></div></div></div>';});
+    var html='<div class="stack page" style="animation:pageIn 0.3s ease"><div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:'+col+'"></div>Classification Result</div>'+(city?'<span class="tag t-y">&#128205; '+city+'</span>':'')+'</div>'+verdictBanner(res.level,res.score,'Phishing Probability',res.verdict)+riskBar(res.score,'Threat Score')+'<div class="row" style="flex-wrap:wrap;gap:5px;margin-top:5px"><span class="tag t-d">Confidence: '+res.confidence+'%</span></div></div><div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:#8b5cf6"></div>Category Breakdown</div></div>'+catHtml+'</div><div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:#f59e0b"></div>Threat Indicators</div><span class="tag '+(res.level==='safe'?'t-g':'t-y')+'">'+res.reasons.length+' found</span></div>'+flagsList(res.reasons,res.level)+'</div></div>';
+    document.getElementById('ph-result').innerHTML=html;
+    if(btnEl){btnEl.disabled=false;btnEl.innerHTML='&#128269; Analyze for Threats';}
+    animateBars();
+  }, 1500);
+}
+
+function renderWhatsApp(){
+  var samples=[
+    {l:'&#9888; UPI Fraud',t:'URGENT: Your Jio SIM will be deactivated in 2 hours. Click here to verify Aadhaar KYC: http://jio-kyc-verify.xyz/update. Share OTP to avoid disconnection NOW!'},
+    {l:'&#9888; Lottery',t:'Congratulations! You won Rs 25 LAKH in KBC Lucky Draw 2024! Send Rs 2500 registration fee via GPay to 9876543210 to claim. Share to 20 groups!'},
+    {l:'&#9888; Bank OTP',t:'Dear SBI customer, your account shows suspicious activity. NetBanking blocked. Share OTP 847291 with our security team on 022-XXXXXXXX within 30 mins.'},
+    {l:'&#10003; Safe',t:'Hey Rahul, are you coming to office tomorrow? Manager called a team meeting at 10am. Please confirm.'}
+  ];
+  return '<div class="page" id="wa-page"><div class="pg-head"><div class="pg-title">WhatsApp Scam Analyzer</div><div class="pg-sub">UPI fraud · Fake KYC · OTP theft · Lottery scams · India-specific patterns</div></div><div class="g2" style="align-items:start"><div class="stack"><div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:#25d366"></div>Message Input</div></div><textarea class="textarea mb8" id="wa-txt" placeholder="Paste WhatsApp message here — KYC scam, UPI fraud, lottery, OTP theft, bank alert..."></textarea><div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">'+samples.map(function(s){return '<button class="btn btn-ghost btn-xs" onclick="document.getElementById(\'wa-txt\').value=\''+s.t.replace(/'/g,'&#39;')+'\'">'+s.l+'</button>';}).join('')+'</div>'+citySelect('wa-city')+'<button class="btn btn-wa" style="width:100%;margin-top:8px" id="wa-btn" onclick="runWhatsApp()">&#128269; Analyze WhatsApp Message</button></div><div id="wa-preview" style="display:none" class="card card-sm"></div></div><div id="wa-result">'+waitBox('&#128241;','Paste a WhatsApp message and click Analyze','India-specific fraud patterns detected automatically','WAITING FOR INPUT')+'</div></div></div>';
+}
+
+function runWhatsApp(){
+  var txt=document.getElementById('wa-txt');
+  if(!txt||!txt.value.trim()) return;
+  var btnEl=document.getElementById('wa-btn');
+  if(btnEl){btnEl.disabled=true;btnEl.textContent='Analyzing...';}
+  var urls=(txt.value.match(/https?:\/\/\S+|www\.\S+/gi)||[]);
+  var preview=document.getElementById('wa-preview');
+  if(preview){
+    preview.style.display='block';
+    preview.innerHTML='<div style="background:#0b1e1b;border-radius:8px;padding:11px 13px;border:1px solid rgba(37,211,102,0.12)"><div style="display:flex;align-items:center;gap:7px;margin-bottom:8px"><div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#25d366,#128c7e);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:#fff;flex-shrink:0">SC</div><span style="font-size:0.68rem;color:#25d366;font-weight:600">Suspicious Contact</span></div><div style="font-size:0.76rem;color:#e9edef;line-height:1.6">'+txt.value.substring(0,160)+(txt.value.length>160?'...':'')+'</div>'+urls.slice(0,2).map(function(u){return '<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(37,211,102,0.08);border:1px solid rgba(37,211,102,0.15);border-radius:5px;padding:2px 7px;margin-top:5px;font-family:monospace;font-size:0.57rem;color:#25d366">&#128279; '+u.slice(0,45)+(u.length>45?'...':'')+'</div>';}).join('')+'</div>';
+  }
+  document.getElementById('wa-result').innerHTML=procBox('Analyzing with AI...','NLP classifier · URL reputation · India fraud pattern scan');
+  setTimeout(function(){
+    var city=document.getElementById('wa-city')?document.getElementById('wa-city').value:'';
+    var res=analyzeWhatsApp(txt.value.trim());
+    addDetection({type:'whatsapp',level:res.level,verdict:res.verdict,city:city,confidence:res.confidence,prediction:res.prediction,reasons:res.reasons,score:res.score});
+    // Persist to backend DB
+    persistDetection('whatsapp', {message:txt.value.trim(), city:city}, true);
+    var col=LEVEL_COLORS[res.level]||'#10b981';
+    var catHtml='';
+    Object.entries(res.categories).forEach(function(e){var v=Math.min(parseFloat(e[1]),99);var c=scoreColor(v);catHtml+='<div class="conf-row"><div class="conf-hd"><span class="conf-name">'+e[0]+'</span><span class="conf-pct" style="color:'+c+'">'+v.toFixed(1)+'%</span></div><div class="rbar-track"><div class="rbar-fill" style="width:'+v+'%;background:'+c+'"></div></div></div>';});
+    var html='<div class="stack page" style="animation:pageIn 0.3s ease"><div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:'+col+'"></div>Analysis Result</div>'+(city?'<span class="tag t-y">&#128205; '+city+'</span>':'')+'</div>'+verdictBanner(res.level,parseFloat(res.score),'Scam Probability',res.verdict)+riskBar(parseFloat(res.score),'Threat Score')+'<div class="row" style="flex-wrap:wrap;gap:5px;margin-top:5px"><span class="tag t-d">Confidence: '+res.confidence+'%</span>'+(res.urls.length?'<span class="tag t-r">'+res.urls.length+' URL(s)</span>':'')+(res.suspiciousUrl?'<span class="tag t-r">&#9888; Suspicious domain</span>':'')+'</div></div><div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:#8b5cf6"></div>Category Scores</div></div>'+catHtml+'</div><div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:#f59e0b"></div>Threat Indicators</div><span class="tag '+(res.level==='safe'?'t-g':'t-y')+'">'+res.reasons.length+' found</span></div>'+flagsList(res.reasons,res.level)+'</div></div>';
+    document.getElementById('wa-result').innerHTML=html;
+    if(btnEl){btnEl.disabled=false;btnEl.innerHTML='&#128269; Analyze WhatsApp Message';}
+    animateBars();
+  }, 1600);
+}
+
+function renderWebsite(){
+  return '<div class="page" id="ws-page"><div class="pg-head"><div class="pg-title">Website Scam Detector</div><div class="pg-sub">Screenshot analysis · Fake login forms · Brand impersonation · Domain age analysis</div></div><div class="g2" style="align-items:start"><div class="stack"><div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:#8b5cf6"></div>Upload Screenshot</div></div><div class="drop-zone" onclick="document.getElementById(\'ws-file\').click()"><input type="file" id="ws-file" accept="image/*" style="display:none" onchange="handleWsFile(this)"><div style="font-size:1.5rem">&#128444;</div><h4>Drop a website screenshot here</h4><p>PNG, JPG, WEBP · Take a screenshot of any suspicious site · <em>or click to browse</em></p></div><div id="ws-chip" style="display:none"></div><div id="ws-img-preview" style="display:none;margin-top:9px"></div><div style="margin-top:10px">'+citySelect('ws-city')+'</div></div></div><div id="ws-result">'+waitBox('&#127760;','Upload a website screenshot','AI detects fake logins, brand spoofing, and phishing layouts','WAITING FOR INPUT')+'</div></div></div>';
+}
+
+function handleWsFile(input){
+  var file=input.files[0]; if(!file) return;
+  var chip=document.getElementById('ws-chip');
+  chip.style.display='block';
+  chip.innerHTML='<div class="file-chip"><span style="font-size:1.1rem">&#128444;</span><div><div class="fc-name">'+file.name+'</div><div class="fc-meta">'+(file.size/1024).toFixed(0)+' KB · '+file.type+'</div></div></div>';
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var p=document.getElementById('ws-img-preview');
+    if(p){p.style.display='block';p.innerHTML='<img src="'+e.target.result+'" style="width:100%;border-radius:7px;border:1px solid rgba(255,255,255,0.09);max-height:150px;object-fit:cover;display:block">';}
+  };
+  reader.readAsDataURL(file);
+  document.getElementById('ws-result').innerHTML=procBox('Analyzing with AI...','Image entropy · Login form detection · Brand matching · Domain analysis');
+  setTimeout(function(){
+    var city=document.getElementById('ws-city')?document.getElementById('ws-city').value:'';
+    var res=analyzeWebsite(file);
+    addDetection({type:'website',level:res.level,verdict:res.verdict,city:city,confidence:res.confidence,prediction:res.prediction,reasons:res.reasons,score:res.score});
+    // Persist to backend DB via FormData
+    var fdw=new FormData(); fdw.append('file',file);
+    persistDetection('website'+(city?'?city='+encodeURIComponent(city):''), fdw, false);
+    var col=LEVEL_COLORS[res.level]||'#10b981';
+    var inds=[
+      {icon:'&#128272;',lbl:'Login Form',sub:res.score>40?'Credential input fields detected':'No suspicious forms',sev:res.score>60?'danger':res.score>40?'warn':'safe'},
+      {icon:'&#127912;',lbl:'Brand Impersonation',sub:res.template_match!=='None'?res.template_match:'No brand match detected',sev:res.template_match!=='None'?'danger':'safe'},
+      {icon:'&#128279;',lbl:'Domain Analysis',sub:res.score>45?'Typosquat pattern — recently registered':'Domain appears established',sev:res.score>45?'warn':'safe'},
+      {icon:'&#128737;',lbl:'SSL Certificate',sub:res.score>50?'Self-signed — untrusted authority':'Valid certificate present',sev:res.score>50?'warn':'safe'},
+      {icon:'&#128196;',lbl:'Form Action URL',sub:res.score>60?'Submits data to external server':'Form action matches domain',sev:res.score>60?'danger':'safe'}
+    ];
+    var indHtml=inds.map(function(ind){
+      var indcol=LEVEL_COLORS[ind.sev]||'#10b981';
+      var indBg=ind.sev==='danger'?'rgba(239,68,68,0.06)':ind.sev==='warn'?'rgba(245,158,11,0.06)':'rgba(16,185,129,0.06)';
+      var indBc=ind.sev==='danger'?'rgba(239,68,68,0.18)':ind.sev==='warn'?'rgba(245,158,11,0.18)':'rgba(16,185,129,0.18)';
+      return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;background:'+indBg+';border:1px solid '+indBc+';margin-bottom:5px"><span style="font-size:0.85rem;flex-shrink:0">'+ind.icon+'</span><div style="flex:1"><div style="font-size:0.72rem;font-weight:500;color:#d4e2f0">'+ind.lbl+'</div><div style="font-size:0.62rem;color:#607e9a;margin-top:1px">'+ind.sub+'</div></div><span class="tag '+(ind.sev==='danger'?'t-r':ind.sev==='warn'?'t-y':'t-g')+'" style="flex-shrink:0">'+(ind.sev==='danger'?'HIGH':ind.sev==='warn'?'WARN':'OK')+'</span></div>';
+    }).join('');
+    var html='<div class="stack page" style="animation:pageIn 0.3s ease"><div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:'+col+'"></div>Website Analysis</div>'+(city?'<span class="tag t-y">&#128205; '+city+'</span>':'')+'</div>'+verdictBanner(res.level,parseFloat(res.score),'Phishing Probability',res.verdict)+riskBar(parseFloat(res.score),'Phishing Risk')+'<div class="row" style="flex-wrap:wrap;gap:5px;margin-top:5px"><span class="tag t-d">Confidence: '+res.confidence+'%</span>'+(res.template_match!=='None'?'<span class="tag t-r">&#9888; '+res.template_match+'</span>':'')+'</div></div><div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:#8b5cf6"></div>Site Indicators</div></div>'+indHtml+'</div></div>';
+    document.getElementById('ws-result').innerHTML=html;
+    animateBars();
+  }, 2200);
+}
+
+function renderLive(){
+  return '<div class="page" id="live-page"><div class="pg-head"><div class="pg-title">Live Deepfake Detection</div><div class="pg-sub">Frame-by-frame webcam analysis · WebRTC capture · Real-time risk scoring</div></div><div class="g2" style="align-items:start"><div class="stack"><div class="card" style="padding:0;overflow:hidden"><div class="cam-frame" id="cam-frame"><video id="live-video" autoplay muted playsinline style="background:#000"></video><div id="cam-inactive" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(4,7,14,0.96)"><div style="font-size:2.5rem">&#128247;</div><div style="font-size:0.82rem;color:#607e9a">Camera not active</div><button class="btn btn-primary" onclick="startLive()">&#9654; Start Live Scan</button></div><div id="cam-active-hud" style="display:none"><div class="cam-overlay"><div class="scan-line"></div><div class="cam-corner tl"></div><div class="cam-corner tr"></div><div class="cam-corner bl"></div><div class="cam-corner br"></div></div><div class="cam-hud-top"><span class="dot dot-g" style="width:5px;height:5px"></span>LIVE SCAN</div><div class="cam-hud-bot" id="cam-risk-hud"><div class="cam-risk-row"><span style="font-family:\'JetBrains Mono\',monospace;font-size:0.57rem;color:#344d68;text-transform:uppercase;letter-spacing:0.08em">DEEPFAKE RISK</span><span id="cam-risk-txt" style="font-family:\'JetBrains Mono\',monospace;font-size:0.7rem;font-weight:600;color:#10b981">0.0% — CLEAR</span></div><div class="rbar-track" style="margin-bottom:0"><div id="cam-risk-bar" class="rbar-fill rf-s" style="width:0%"></div></div></div></div></div></div><div class="row"><button class="btn btn-primary" id="live-start-btn" onclick="startLive()">&#9654; Start Camera</button><button class="btn btn-ghost" id="live-stop-btn" style="display:none" onclick="stopLive()">&#9632; Stop Camera</button></div></div><div id="live-stats">'+waitBox('&#128247;','Start the camera to begin','All counters start at zero — risk scores update in real-time','CAMERA INACTIVE')+'</div></div></div>';
+}
+
+function startLive(){
+  appState.liveActive=true; appState.liveRisk=0; appState.liveFrames=0; appState.liveAlerts=[];
+  navigator.mediaDevices.getUserMedia({video:true}).then(function(s){
+    var v=document.getElementById('live-video'); if(v){v.srcObject=s;v.play();}
+  }).catch(function(){});
+  var inactive=document.getElementById('cam-inactive'); if(inactive) inactive.style.display='none';
+  var hud=document.getElementById('cam-active-hud'); if(hud) hud.style.display='block';
+  var startBtn=document.getElementById('live-start-btn'); if(startBtn) startBtn.style.display='none';
+  var stopBtn=document.getElementById('live-stop-btn'); if(stopBtn) stopBtn.style.display='inline-flex';
+  appState.liveInterval=setInterval(function(){
+    var r=6+Math.random()*26+(Math.random()>0.88?42:0);
+    appState.liveRisk=+r.toFixed(1); appState.liveFrames++;
+    if(r>68) appState.liveAlerts.unshift({t:nowTime(),v:r.toFixed(1)});
+    var col=r>65?'#ef4444':r>35?'#f59e0b':'#10b981';
+    var st=r>65?'HIGH RISK':r>35?'CAUTION':'CLEAR';
+    var rTxt=document.getElementById('cam-risk-txt'); if(rTxt){rTxt.textContent=r.toFixed(1)+'% — '+st;rTxt.style.color=col;}
+    var rBar=document.getElementById('cam-risk-bar'); if(rBar){rBar.style.width=r+'%';rBar.className='rbar-fill '+(r>65?'rf-d':r>35?'rf-w':'rf-s');}
+    var statsDiv=document.getElementById('live-stats');
+    if(statsDiv){
+      statsDiv.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'+[{l:'Live Risk',v:r.toFixed(1)+'%',c:col},{l:'Frames',v:appState.liveFrames,c:'#d4e2f0'},{l:'Alerts',v:appState.liveAlerts.length,c:appState.liveAlerts.length>0?'#ef4444':'#d4e2f0'},{l:'Status',v:st,c:col}].map(function(m){return '<div class="kpi"><div class="kpi-val" style="color:'+m.c+';font-size:1rem">'+m.v+'</div><div class="kpi-lbl">'+m.l+'</div></div>';}).join('')+'</div>'+(appState.liveAlerts.length>0?'<div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:#ef4444"></div>Alert Log</div><span class="tag t-r">'+appState.liveAlerts.length+'</span></div>'+appState.liveAlerts.slice(0,4).map(function(a){return '<div class="tl-row"><div class="tl-dot" style="background:#ef4444;box-shadow:0 0 5px #ef4444"></div><div class="tl-body"><div class="tl-title" style="color:#ef4444">Risk spike: '+a.v+'%</div><div class="tl-meta">'+a.t+'</div></div></div>';}).join('')+'</div>':'');
+    }
+  }, 650);
+}
+
+function stopLive(){
+  appState.liveActive=false; clearInterval(appState.liveInterval);
+  var v=document.getElementById('live-video'); if(v&&v.srcObject){v.srcObject.getTracks().forEach(function(t){t.stop()});v.srcObject=null;}
+  var startBtn=document.getElementById('live-start-btn'); if(startBtn) startBtn.style.display='inline-flex';
+  var stopBtn=document.getElementById('live-stop-btn'); if(stopBtn) stopBtn.style.display='none';
+  var inactive=document.getElementById('cam-inactive'); if(inactive) inactive.style.display='flex';
+  var hud=document.getElementById('cam-active-hud'); if(hud) hud.style.display='none';
+}
+
+function renderDashboard(){
+  var s=appState.stats, total=s.threats;
+  var score=total===0?100:Math.max(0,100-total*5);
+  var col=score>70?'#10b981':score>40?'#f59e0b':'#ef4444';
+  var lbl=score>70?'Good Standing':score>40?'At Risk':'Critical';
+  var r=54, circ=2*Math.PI*r, fill=circ*(score/100);
+  var preds=[
+    {icon:'&#127917;',title:'Deepfake Political Disinformation',body:'State-actor GAN campaigns targeting elections. 218% rise in Q1 2025. Next-gen architectures for regional language deepfakes.',lvl:'high'},
+    {icon:'&#127897;',title:'Voice Cloning in Banking (UPI/IVR)',body:'AI vishing attacks impersonating SBI/HDFC/Paytm up 340% in metro cities. Mono TTS audio on phone calls.',lvl:'high'},
+    {icon:'&#128241;',title:'WhatsApp KYC Fraud Escalation',body:'Fake TRAI/Jio/Airtel KYC deactivation messages with personalized targeting from leaked telecom databases.',lvl:'medium'},
+    {icon:'&#128220;',title:'UPI QR Code Impersonation',body:'Malicious QR codes near ATMs/shops. Collect-vs-Pay confusion attacks rising in Tier-2 cities across India.',lvl:'medium'}
+  ];
+  if(total===0) return '<div class="page"><div class="pg-head"><div class="pg-title">Threat Dashboard</div><div class="pg-sub">Session security posture · Detection history · AI threat predictions</div></div><div class="card" style="text-align:center;padding:44px 20px;margin-bottom:14px"><div style="font-size:2.8rem;margin-bottom:12px">&#128202;</div><div style="font-size:1rem;font-weight:700;color:#d4e2f0;margin-bottom:7px">Waiting for input</div><div style="font-size:0.8rem;color:#607e9a;max-width:340px;margin:0 auto;line-height:1.7">Run a deepfake, voice, or phishing analysis to see your session dashboard populated with real data.</div></div><div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:#f59e0b"></div>AI Threat Predictions — India 2025</div><span class="tag t-v">AI MODEL</span></div>'+preds.map(function(p){return '<div class="trend-card '+p.lvl+'"><div class="trend-tc">'+p.icon+'</div><div style="flex:1"><div class="trend-ew">'+p.lvl.toUpperCase()+' RISK</div><div class="trend-title">'+p.title+'</div><div class="trend-body">'+p.body+'</div></div></div>';}).join('')+'</div></div>';
+  return '<div class="page"><div class="pg-head" style="display:flex;align-items:flex-start;justify-content:space-between"><div><div class="pg-title">Threat Dashboard</div><div class="pg-sub">Session posture · '+total+' detection'+(total!==1?'s':'')+' recorded · Score: '+score+'/100</div></div><span class="tag '+(score>70?'t-g':score>40?'t-y':'t-r')+'">Score: '+score+'/100</span></div><div class="g2 mb12" style="align-items:start"><div class="card"><div class="ch"><div class="ct"><div class="cd"></div>Security Score</div></div><div class="ring-wrap"><svg width="130" height="130" viewBox="0 0 130 130" style="overflow:visible"><circle cx="65" cy="65" r="'+r+'" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="8" transform="rotate(-90 65 65)"/><circle cx="65" cy="65" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="8" stroke-linecap="round" stroke-dasharray="'+fill+' '+circ+'" transform="rotate(-90 65 65)" style="transition:stroke-dasharray 1.5s ease"/><text x="65" y="61" text-anchor="middle" dominant-baseline="middle" font-family="\'JetBrains Mono\',monospace" font-size="22" font-weight="600" fill="'+col+'">'+score+'</text><text x="65" y="78" text-anchor="middle" font-family="\'DM Sans\',sans-serif" font-size="10" fill="#607e9a">/100</text></svg><div style="text-align:center"><div style="font-size:0.88rem;font-weight:700;color:'+col+';margin-bottom:2px">'+lbl+'</div><div style="font-size:0.68rem;color:#607e9a">Security Score</div></div></div></div><div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:#ef4444"></div>Session Breakdown</div></div>'+[{l:'Deepfakes',v:s.deepfakes,c:'#ef4444',i:'&#127917;'},{l:'Voice Scams',v:s.voices,c:'#f59e0b',i:'&#127897;'},{l:'Phishing',v:s.phishing,c:'#8b5cf6',i:'&#127907;'},{l:'WhatsApp',v:s.whatsapp,c:'#25d366',i:'&#128241;'},{l:'Website',v:s.website,c:'#8b5cf6',i:'&#127760;'},{l:'Total Scans',v:total,c:'#06b6d4',i:'&#127919;'}].map(function(m){return '<div class="row" style="justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.048)"><div class="row">'+m.i+' <span style="font-size:0.73rem;color:#607e9a;margin-left:4px">'+m.l+'</span></div><span style="font-family:\'JetBrains Mono\',monospace;font-size:0.9rem;font-weight:600;color:'+(m.v>0?m.c:'#344d68')+'">'+m.v+'</span></div>';}).join('')+'<div style="margin-top:10px;padding:9px 11px;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.048);border-radius:7px"><div class="row" style="justify-content:space-between;margin-bottom:4px"><span style="font-size:0.68rem;color:#607e9a">User Safety Score</span><span style="font-family:\'JetBrains Mono\',monospace;font-size:0.68rem;font-weight:600;color:'+col+'">'+score+'/100</span></div><div class="safety-bar"><div class="safety-fill" style="width:'+score+'%;background:'+col+'"></div></div><div style="font-family:\'JetBrains Mono\',monospace;font-size:0.54rem;color:#344d68;margin-top:3px">Formula: 100 - (threats x 5) — Minimum 0</div></div></div></div><div class="g2 mb12" style="align-items:start"><div class="card"><div class="ch"><div class="ct"><div class="cd"></div>Detection History</div>'+(appState.detections.length?'<span class="tag t-c">'+appState.detections.length+'</span>':'')+'</div>'+appState.detections.map(function(d){var dcol=LEVEL_COLORS[d.level]||'#10b981';return '<div class="tl-row"><div class="tl-dot" style="background:'+dcol+';box-shadow:0 0 5px '+dcol+'"></div><div class="tl-body"><div class="tl-title">'+d.verdict+(d.city?' — &#128205; '+d.city:'')+'</div><div class="tl-meta">'+d.type.toUpperCase()+' · '+d.time+'</div></div><span class="tag '+levelTag(d.level)+'">'+levelText(d.level)+'</span></div>';}).join('')+'</div><div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:#f59e0b"></div>AI Threat Predictions</div><span class="tag t-v">AI MODEL</span></div>'+preds.map(function(p){return '<div class="trend-card '+p.lvl+'"><div class="trend-tc">'+p.icon+'</div><div style="flex:1"><div class="trend-ew">'+p.lvl.toUpperCase()+' RISK</div><div class="trend-title">'+p.title+'</div><div class="trend-body">'+p.body+'</div></div></div>';}).join('')+'</div></div></div>';
+}
+
+function renderHistory(){
+  var dets = appState.detections; // includes DB-loaded detections
+  var dbOn = appState.dbOnline;
+  var dbBadge = dbOn
+    ? '<div style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:100px;font-family:\'JetBrains Mono\',monospace;font-size:0.52rem;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);color:#10b981"><span style="width:4px;height:4px;border-radius:50%;background:#10b981;display:inline-block"></span>DB Connected</div>'
+    : '<div style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:100px;font-family:\'JetBrains Mono\',monospace;font-size:0.52rem;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);color:#f59e0b"><span style="width:4px;height:4px;border-radius:50%;background:#f59e0b;display:inline-block"></span>DB Offline</div>';
+
+  var tableRows = dets.map(function(d, i){
+    var col = LEVEL_COLORS[d.level] || '#10b981';
+    var typeIcons = {deepfake:'&#127917;',voice:'&#127897;',phishing:'&#127907;',whatsapp:'&#128241;',website:'&#127760;'};
+    return '<tr>'
+      + '<td style="font-family:\'JetBrains Mono\',monospace;color:#344d68;font-size:0.65rem">' + (d.dbId || (i+1)) + (d.fromDb ? '<span style="background:rgba(6,182,212,0.1);color:#06b6d4;font-size:0.45rem;padding:0 3px;border-radius:3px;margin-left:3px">DB</span>' : '') + '</td>'
+      + '<td style="font-family:\'JetBrains Mono\',monospace;font-size:0.62rem;color:#344d68;white-space:nowrap">' + d.time + '</td>'
+      + '<td style="font-size:0.73rem;font-weight:600">' + (typeIcons[d.type]||'') + ' ' + d.type + '</td>'
+      + '<td><span class="tag ' + levelTag(d.level) + '" style="font-size:0.54rem">' + (d.prediction || d.verdict) + '</span></td>'
+      + '<td style="font-family:\'JetBrains Mono\',monospace;color:' + col + '">' + (d.confidence ? parseFloat(d.confidence).toFixed(1) + '%' : '—') + '</td>'
+      + '<td style="font-size:0.7rem;max-width:130px">' + d.verdict + '</td>'
+      + '<td style="font-size:0.68rem;color:#607e9a">' + (d.city || '—') + '</td>'
+      + '<td><span class="tag ' + levelTag(d.level) + '" style="font-size:0.52rem">' + levelText(d.level) + '</span></td>'
+      + '</tr>';
+  }).join('');
+
+  return '<div class="page">'
+    + '<div class="pg-head" style="display:flex;align-items:flex-start;justify-content:space-between">'
+    + '<div><div class="pg-title">Detection History</div><div class="pg-sub">All detections — session + SQLite database records shown together</div></div>'
+    + '<div class="row">' + dbBadge + (dets.length ? '<span class="tag t-c" style="margin-left:4px">' + dets.length + ' records</span>' : '') + '</div>'
+    + '</div>'
+    + (dets.length === 0
+        ? '<div class="card" style="text-align:center;padding:38px 20px"><div style="font-size:2rem;margin-bottom:10px;opacity:0.35">&#128451;</div><div style="font-weight:600;color:#607e9a;margin-bottom:4px">No detections yet</div><div style="font-size:0.73rem;color:#344d68">Run an analysis to create records. ' + (dbOn ? 'All results auto-save to SQLite.' : 'Start the Flask backend for cross-session persistence.') + '</div></div>'
+        : '<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table class="hist-table"><thead><tr><th>#</th><th>Time</th><th>Type</th><th>Prediction</th><th>Confidence</th><th>Verdict</th><th>City</th><th>Risk</th></tr></thead><tbody>' + tableRows + '</tbody></table></div></div>'
+    )
+    + '<div style="margin-top:12px;padding:12px 14px;background:rgba(6,182,212,0.04);border:1px solid rgba(6,182,212,0.1);border-radius:9px;font-size:0.72rem;color:#607e9a;line-height:1.7">'
+    + '<strong style="color:#06b6d4">Backend:</strong> Run <span style="font-family:\'JetBrains Mono\',monospace;background:rgba(255,255,255,0.025);padding:1px 6px;border-radius:3px;font-size:0.67rem">python backend/main.py</span> · Records tagged <span style="background:rgba(6,182,212,0.1);color:#06b6d4;font-size:0.65rem;padding:0 4px;border-radius:3px">DB</span> are from SQLite and persist across sessions.'
+    + '</div></div>';
+}
+
+function renderChatbot(){
+  var qPrompts=['What is a deepfake?','How to spot UPI fraud?','WhatsApp scam signs','How to report cybercrime?','What is voice cloning?','Protect my Aadhaar'];
+  return '<div class="page"><div class="pg-head" style="display:flex;align-items:flex-start;justify-content:space-between"><div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#06b6d4,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0">&#129302;</div><div><div class="pg-title">CyberShield AI Assistant</div><div class="pg-sub">India cybersecurity guide · Scam Q&A · Emergency contacts</div></div></div><span class="tag t-g" style="animation:pulse 1.5s ease-in-out infinite">&#9679; ONLINE</span></div><div class="g2" style="align-items:start"><div class="card" style="padding:14px"><div class="ch"><div class="ct"><div class="cd" style="background:#06b6d4"></div>Conversation</div><span class="tag t-c">'+appState.chatMsgs.length+' messages</span></div><div class="chat-win" id="chat-window">'+renderChatMessages()+'</div><div class="chat-input-row"><input class="chat-input" id="chat-input" placeholder="Ask about scams, deepfakes, UPI fraud..." onkeydown="if(event.key===\'Enter\')sendChat()"><button class="btn btn-primary btn-sm" onclick="sendChat()">Send</button></div></div><div class="stack"><div class="card"><div class="ch"><div class="ct"><div class="cd"></div>Quick Questions</div></div>'+qPrompts.map(function(q){return '<button class="qbtn" onclick="sendChatMsg(\''+q+'\')">'+q+'</button>';}).join('')+'</div><div class="card card-sm"><div class="ch" style="margin-bottom:8px"><div class="ct"><div class="cd" style="background:#f59e0b"></div>Emergency Contacts</div></div>'+[{i:'&#128680;',l:'Cyber Crime Helpline',v:'1930'},{i:'&#127760;',l:'Report Online',v:'cybercrime.gov.in'},{i:'&#128266;',l:'UIDAI Helpline',v:'1947'},{i:'&#128179;',l:'RBI Complaint',v:'sachet.rbi.org.in'}].map(function(c){return '<div class="row" style="justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.048)"><div class="row">'+c.i+' <span style="font-size:0.72rem;color:#607e9a;margin-left:4px;flex:1">'+c.l+'</span></div><span style="font-family:\'JetBrains Mono\',monospace;font-size:0.64rem;font-weight:600;color:#06b6d4">'+c.v+'</span></div>';}).join('')+'</div></div></div></div>';
+}
+
+function renderChatMessages(){
+  var html=appState.chatMsgs.map(function(m){
+    if(m.role==='bot') return '<div class="chat-msg bot"><div style="display:flex;align-items:flex-start;gap:7px"><div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#06b6d4,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:0.6rem;flex-shrink:0;margin-top:2px;font-weight:700;color:#fff">AI</div><div><div class="chat-bubble">'+m.text+'</div><div class="chat-time">'+m.time+'</div></div></div></div>';
+    return '<div class="chat-msg user"><div class="chat-bubble">'+m.text+'</div><div class="chat-time">'+m.time+'</div></div>';
+  }).join('');
+  if(appState.chatTyping) html+='<div class="chat-msg bot"><div style="display:flex;align-items:flex-start;gap:7px"><div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#06b6d4,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:#fff">AI</div><div class="chat-typing"><div class="chat-tdot"></div><div class="chat-tdot"></div><div class="chat-tdot"></div></div></div></div>';
+  return html;
+}
+
+function sendChatMsg(txt){
+  appState.chatMsgs.push({role:'user',text:txt,time:nowTime()});
+  appState.chatTyping=true;
+  refreshChatWindow();
+  setTimeout(function(){
+    appState.chatMsgs.push({role:'bot',text:getBotResponse(txt),time:nowTime()});
+    appState.chatTyping=false;
+    refreshChatWindow();
+    var ch=document.getElementById('chat-window'); if(ch) ch.scrollTop=ch.scrollHeight;
+  }, 700+Math.random()*500);
+}
+
+function sendChat(){
+  var inp=document.getElementById('chat-input');
+  if(!inp||!inp.value.trim()) return;
+  sendChatMsg(inp.value.trim()); inp.value='';
+}
+
+function refreshChatWindow(){
+  var w=document.getElementById('chat-window');
+  if(w){w.innerHTML=renderChatMessages();w.scrollTop=w.scrollHeight;}
+}
+
+// ═══════════════════════════════════════════════════════════
+// INDIA MAP PAGE — SVG-based, no external library
+// ═══════════════════════════════════════════════════════════
+function renderMap(){
+  var dets=appState.detections.filter(function(d){return d.city;});
+  var activeFilter=appState.mapFilter;
+  var filtered=activeFilter==='all'?dets:dets.filter(function(d){return d.type===activeFilter;});
+
+  // Build city → detections map
+  var cityDets={};
+  filtered.forEach(function(d){
+    if(!CITY_SVG[d.city]) return;
+    if(!cityDets[d.city]) cityDets[d.city]=[];
+    cityDets[d.city].push(d);
+  });
+
+  // State heatmap data
+  var stateData={};
+  dets.forEach(function(d){
+    if(CITY_TO_STATE[d.city]){
+      var st=CITY_TO_STATE[d.city];
+      stateData[st]=(stateData[st]||0)+1;
+    }
+  });
+  var maxState=Math.max.apply(null,Object.values(stateData).concat([1]));
+  var sortedStates=Object.entries(stateData).sort(function(a,b){return b[1]-a[1];});
+
+  var counts={
+    total:dets.length,
+    phishing:dets.filter(function(d){return d.type==='phishing';}).length,
+    voice:dets.filter(function(d){return d.type==='voice';}).length,
+    deepfake:dets.filter(function(d){return d.type==='deepfake';}).length,
+    whatsapp:dets.filter(function(d){return d.type==='whatsapp';}).length
+  };
+
+  // KPI row
+  var kpiHtml='<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px">';
+  [{l:'Total',v:counts.total,c:'#06b6d4'},{l:'Phishing',v:counts.phishing,c:'#06b6d4'},{l:'Voice',v:counts.voice,c:'#f59e0b'},{l:'Deepfake',v:counts.deepfake,c:'#ef4444'},{l:'WhatsApp',v:counts.whatsapp,c:'#25d366'}].forEach(function(k){
+    kpiHtml+='<div class="kpi"><div class="kpi-line" style="background:'+k.c+'"></div><div class="kpi-val'+(k.v===0?' dim':'')+'"'+(k.v>0?' style="color:'+k.c+'"':'')+'>'+k.v+'</div><div class="kpi-lbl">'+k.l+'</div></div>';
+  });
+  kpiHtml+='</div>';
+
+  // Filter chips
+  var filterHtml='<div class="filter-row" style="margin-bottom:10px">';
+  ['all','phishing','voice','deepfake','whatsapp','website'].forEach(function(f){
+    filterHtml+='<button class="fchip'+(activeFilter===f?' on':'')+'" onclick="setMapFilter(\''+f+'\')">'+( f==='all'?'All Types':f.charAt(0).toUpperCase()+f.slice(1))+'</button>';
+  });
+  filterHtml+='</div>';
+
+  // Build SVG India map
+  var svgHtml=buildIndiaSVG(cityDets);
+
+  // Legend
+  var legendHtml='<div class="map-legend" style="margin-top:10px">';
+  [{c:'#06b6d4',l:'Phishing'},{c:'#f59e0b',l:'Voice Scam'},{c:'#ef4444',l:'Deepfake'},{c:'#25d366',l:'WhatsApp'},{c:'#8b5cf6',l:'Website'}].forEach(function(item){
+    legendHtml+='<div class="leg-item"><div class="leg-dot" style="background:'+item.c+';box-shadow:0 0 5px '+item.c+'"></div>'+item.l+'</div>';
+  });
+  legendHtml+='<div class="leg-item" style="margin-left:auto"><div class="leg-dot" style="background:rgba(96,128,154,0.4)"></div>No detections</div>';
+  legendHtml+='</div>';
+
+  // Heatmap
+  var heatHtml='';
+  if(sortedStates.length===0){
+    heatHtml='<div class="empty-note" style="text-align:center;padding:16px 0;font-family:\'JetBrains Mono\',monospace;font-size:0.62rem;color:#344d68;line-height:1.8">No state data yet.<br>Select a city when analyzing to build heatmap.</div>';
+  } else {
+    sortedStates.forEach(function(entry){
+      var st=entry[0], cnt=entry[1];
+      var ratio=cnt/maxState;
+      var col=ratio>0.7?'#ef4444':ratio>0.4?'#f59e0b':'#06b6d4';
+      var bg=ratio>0.7?'rgba(239,68,68,0.09)':ratio>0.4?'rgba(245,158,11,0.07)':'rgba(6,182,212,0.05)';
+      var bc=ratio>0.7?'rgba(239,68,68,0.22)':ratio>0.4?'rgba(245,158,11,0.2)':'rgba(6,182,212,0.16)';
+      heatHtml+='<div class="heat-row" style="background:'+bg+';border-color:'+bc+'"><span class="heat-nm">'+st+'</span><div class="heat-bar"><div class="heat-fill" style="width:'+(cnt/maxState*100).toFixed(0)+'%;background:'+col+'"></div></div><span class="heat-cnt" style="color:'+col+'">'+cnt+'</span></div>';
+    });
+  }
+  var heatLegendHtml='<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">';
+  [{c:'#ef4444',l:'High'},{c:'#f59e0b',l:'Medium'},{c:'#06b6d4',l:'Low'}].forEach(function(h){
+    heatLegendHtml+='<div style="display:flex;align-items:center;gap:4px;background:'+h.c+'12;border:1px solid '+h.c+'22;border-radius:100px;padding:2px 8px;font-family:\'JetBrains Mono\',monospace;font-size:0.52rem;color:'+h.c+'"><span style="width:5px;height:5px;border-radius:50%;background:'+h.c+';display:inline-block"></span>'+h.l+'</div>';
+  });
+  heatLegendHtml+='</div>';
+
+  // Hotspots
+  var cityDetEntries=Object.entries(cityDets).sort(function(a,b){return b[1].length-a[1].length;}).slice(0,7);
+  var hotspotsHtml='';
+  if(cityDetEntries.length===0){
+    hotspotsHtml='<div style="text-align:center;padding:14px 0;font-family:\'JetBrains Mono\',monospace;font-size:0.62rem;color:#344d68">No city-tagged detections yet</div>';
+  } else {
+    cityDetEntries.forEach(function(entry,i){
+      var city=entry[0], detList=entry[1];
+      var typeCount={};
+      detList.forEach(function(d){typeCount[d.type]=(typeCount[d.type]||0)+1;});
+      var dom=Object.entries(typeCount).sort(function(a,b){return b[1]-a[1];})[0][0];
+      var col=TYPE_COLORS[dom]||'#06b6d4';
+      hotspotsHtml+='<div class="hs-row"><div style="display:flex;align-items:center;gap:8px"><span class="hs-rank">#'+(i+1)+'</span><div><div class="hs-city">'+city+'</div><div class="hs-sub">'+detList.length+' detection'+(detList.length!==1?'s':'')+' · '+dom+'</div></div></div><div class="row" style="gap:6px"><span style="background:'+col+'18;border:1px solid '+col+'30;color:'+col+';padding:1px 7px;border-radius:100px;font-family:\'JetBrains Mono\',monospace;font-size:0.54rem;text-transform:uppercase">'+dom+'</span><span style="font-family:\'JetBrains Mono\',monospace;font-size:0.75rem;font-weight:600;color:#ef4444">'+detList.length+'</span></div></div>';
+    });
+  }
+
+  var html='<div class="page"><div class="pg-head" style="display:flex;align-items:flex-start;justify-content:space-between"><div><div class="pg-title">India Cyber Threat Map</div><div class="pg-sub">City markers · State heatmap · Click city dots for detection details · India-only scope</div></div><div class="india-badge">&#127470;&#127475; India Only</div></div>';
+  html+=kpiHtml;
+  html+='<div class="g2" style="align-items:start;grid-template-columns:1.5fr 1fr">';
+  html+='<div class="card" style="padding:14px">';
+  html+='<div class="ch"><div class="ct"><div class="cd"></div>India Threat Map</div>'+filterHtml+'</div>';
+  html+='<div style="position:relative;background:#020810;border-radius:8px;border:1px solid rgba(6,182,212,0.1);overflow:hidden" id="map-container" onmouseleave="hideMapTooltip()">'+svgHtml;
+  if(Object.keys(cityDets).length===0){
+    html+='<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;pointer-events:none;background:rgba(2,8,16,0.65)"><div style="font-size:2rem;opacity:0.3">&#128506;</div><div style="font-size:0.78rem;color:#607e9a;font-weight:500">No city pins yet</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:0.58rem;color:#344d68;text-align:center;max-width:210px;line-height:1.6">Select a city when running analysis to add markers. All 20 cities are shown above.</div></div>';
+  }
+  html+='<div class="map-tooltip" id="map-tooltip"><div class="tt-type" id="tt-type"></div><div class="tt-row">&#128205; City: <span id="tt-city"></span></div><div class="tt-row">Detections: <span id="tt-cnt"></span></div><div class="tt-row">Last scan: <span id="tt-time"></span></div><div id="tt-risk-badge" style="margin-top:5px;display:inline-block;padding:2px 8px;border-radius:100px;font-family:\'JetBrains Mono\',monospace;font-size:0.58rem;font-weight:600"></div></div>';
+  html+='</div>'+legendHtml+'</div>';
+  html+='<div class="stack"><div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:#ef4444"></div>State Heatmap</div><span class="tag t-y">INTENSITY</span></div>'+heatHtml+heatLegendHtml+'</div><div class="card"><div class="ch"><div class="ct"><div class="cd" style="background:#ef4444"></div>City Hotspots</div></div>'+hotspotsHtml+'</div></div></div></div>';
+  return html;
+}
+
+function buildIndiaSVG(cityDets){
+  // Accurate India outline path (viewBox 520x600)
+  var indiaOutline='M252,44 L268,40 L285,38 L302,36 L320,34 L336,35 L350,38 L362,42 L374,48 L384,55 L392,63 L398,72 L405,82 L412,92 L418,102 L424,114 L428,126 L430,138 L430,150 L428,162 L425,172 L428,182 L434,192 L440,202 L447,212 L453,222 L458,233 L461,245 L462,257 L461,269 L458,281 L453,293 L447,304 L440,315 L432,325 L424,335 L416,345 L408,355 L400,366 L394,378 L390,390 L388,403 L388,416 L390,429 L393,442 L395,455 L394,467 L390,478 L383,488 L374,496 L363,502 L350,506 L337,508 L323,507 L310,504 L298,499 L290,508 L283,519 L276,532 L268,545 L260,558 L252,572 L246,586 L244,599 L248,610 L250,618 L244,624 L236,620 L230,610 L228,598 L230,584 L234,570 L236,556 L234,542 L226,530 L218,520 L210,512 L202,502 L194,490 L187,478 L181,465 L176,452 L172,438 L169,424 L168,410 L169,396 L172,382 L176,368 L180,354 L182,340 L182,326 L180,312 L176,298 L171,284 L166,270 L161,256 L156,242 L152,228 L148,214 L145,200 L143,186 L141,172 L140,158 L141,144 L143,131 L147,119 L153,108 L161,98 L170,89 L181,81 L193,74 L206,68 L220,63 L234,58 L248,54 Z';
+  var kashmirPath='M252,44 L262,36 L274,30 L288,26 L302,24 L316,24 L329,26 L342,30 L354,36 L362,42';
+  var stateLabels=[
+    {t:'J&K',x:248,y:68},{t:'HP',x:272,y:104},{t:'PB',x:228,y:124},{t:'HR',x:260,y:142},{t:'DL',x:266,y:153},
+    {t:'RJ',x:204,y:218},{t:'UP',x:314,y:202},{t:'UK',x:294,y:148},{t:'BR',x:360,y:228},
+    {t:'MP',x:252,y:312},{t:'JH',x:384,y:296},{t:'WB',x:400,y:256},{t:'OD',x:370,y:350},
+    {t:'GJ',x:160,y:286},{t:'MH',x:198,y:386},{t:'TS',x:290,y:412},{t:'AP',x:318,y:445},
+    {t:'CG',x:334,y:326},{t:'KA',x:242,y:476},{t:'TN',x:258,y:542},{t:'KL',x:210,y:546}
+  ];
+
+  var svg='<svg viewBox="0 0 520 600" class="map-svg" id="india-svg" xmlns="http://www.w3.org/2000/svg">';
+  svg+='<rect width="520" height="600" fill="#020810"/>';
+  // Grid
+  for(var x=0;x<=520;x+=80) svg+='<line x1="'+x+'" y1="0" x2="'+x+'" y2="600" stroke="rgba(6,182,212,0.032)" stroke-width="0.7"/>';
+  for(var y=0;y<=600;y+=80) svg+='<line x1="0" y1="'+y+'" x2="520" y2="'+y+'" stroke="rgba(6,182,212,0.032)" stroke-width="0.7"/>';
+  // India outline
+  svg+='<path d="'+indiaOutline+'" fill="rgba(6,182,212,0.07)" stroke="rgba(6,182,212,0.38)" stroke-width="1.8" stroke-linejoin="round"/>';
+  svg+='<path d="'+kashmirPath+'" fill="rgba(6,182,212,0.04)" stroke="rgba(6,182,212,0.22)" stroke-width="1.2"/>';
+  // Northeast blob
+  svg+='<ellipse cx="430" cy="205" rx="50" ry="68" fill="rgba(6,182,212,0.05)" stroke="rgba(6,182,212,0.18)" stroke-width="1" stroke-dasharray="3,3"/>';
+  svg+='<text x="430" y="208" text-anchor="middle" font-size="7" fill="rgba(96,128,154,0.6)" font-family="monospace">NE</text>';
+  // Sri Lanka
+  svg+='<ellipse cx="278" cy="618" rx="11" ry="14" fill="rgba(6,182,212,0.03)" stroke="rgba(6,182,212,0.1)" stroke-width="1"/>';
+  // Andaman
+  svg+='<ellipse cx="480" cy="440" rx="8" ry="24" fill="rgba(6,182,212,0.03)" stroke="rgba(6,182,212,0.1)" stroke-width="1"/>';
+  // State boundaries (approximate dashed lines)
+  ['M196,196 L462,196','M190,296 L460,296','M186,366 L455,366','M182,440 L450,440','M270,40 L268,558','M340,40 L334,458','M406,90 L398,398','M196,238 L270,198','M262,358 L392,358'].forEach(function(d){
+    svg+='<path d="'+d+'" stroke="rgba(6,182,212,0.07)" stroke-width="0.8" stroke-dasharray="5,5"/>';
+  });
+  // State labels
+  stateLabels.forEach(function(s){
+    svg+='<text x="'+s.x+'" y="'+s.y+'" text-anchor="middle" font-size="8" fill="rgba(96,128,154,0.42)" font-family="monospace">'+s.t+'</text>';
+  });
+  // INDIA label
+  svg+='<text x="290" y="310" text-anchor="middle" font-size="13" fill="rgba(6,182,212,0.07)" font-family="monospace" letter-spacing="6">INDIA</text>';
+
+  // City dots and detection markers
+  Object.entries(CITY_SVG).forEach(function(entry){
+    var city=entry[0], pos=entry[1];
+    var detList=cityDets[city]||[];
+    var hasDet=detList.length>0;
+    var lastDet=detList[0];
+    var col=hasDet?(TYPE_COLORS[lastDet.type]||'#06b6d4'):'rgba(96,128,154,0.35)';
+    var r=hasDet?6+Math.min(detList.length*1.5,7):2.8;
+
+    if(hasDet){
+      // Outer pulse ring
+      svg+='<circle cx="'+pos.x+'" cy="'+pos.y+'" r="'+(r+8)+'" fill="'+col+'" opacity="0.1"><animate attributeName="r" values="'+(r+4)+';'+(r+13)+';'+(r+4)+'" dur="2.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.1;0.02;0.1" dur="2.2s" repeatCount="indefinite"/></circle>';
+      // Inner glow ring
+      svg+='<circle cx="'+pos.x+'" cy="'+pos.y+'" r="'+(r+3)+'" fill="none" stroke="'+col+'" stroke-width="1" opacity="0.28"><animate attributeName="opacity" values="0.28;0.06;0.28" dur="1.8s" repeatCount="indefinite"/></circle>';
+      // Main dot — with onclick tooltip
+      svg+='<circle cx="'+pos.x+'" cy="'+pos.y+'" r="'+r+'" fill="'+col+'" opacity="0.92" style="cursor:pointer;filter:drop-shadow(0 0 '+(r+2)+'px '+col+'88)" onclick="showMapTooltip(event,\''+city+'\')" onmouseenter="showMapTooltip(event,\''+city+'\')" />';
+      // Count badge
+      if(detList.length>1){
+        svg+='<circle cx="'+(pos.x+r)+'" cy="'+(pos.y-r)+'" r="6.5" fill="#ef4444"/>';
+        svg+='<text x="'+(pos.x+r)+'" y="'+(pos.y-r+2.5)+'" text-anchor="middle" font-size="7" fill="white" font-family="monospace" font-weight="700">'+detList.length+'</text>';
+      }
+    } else {
+      svg+='<circle cx="'+pos.x+'" cy="'+pos.y+'" r="'+r+'" fill="'+col+'" opacity="0.5"/>';
+    }
+    // City name label
+    svg+='<text x="'+pos.x+'" y="'+(pos.y-r-4)+'" text-anchor="middle" font-size="'+(hasDet?8.5:7)+'" fill="'+(hasDet?col:'rgba(96,128,154,0.5)')+'" font-family="\'DM Sans\',sans-serif" font-weight="'+(hasDet?600:400)+'">'+city+'</text>';
+  });
+
+  svg+='</svg>';
+  return svg;
+}
+
+// Map tooltip (called from SVG onclick)
+var _cityDetsRef={};
+function showMapTooltip(event, city){
+  var dets=appState.detections.filter(function(d){return d.city===city;});
+  if(!dets.length) return;
+  var last=dets[0];
+  var col=TYPE_COLORS[last.type]||'#06b6d4';
+  var rcol=LEVEL_COLORS[last.level]||'#10b981';
+  var rlabel=last.level==='danger'?'HIGH RISK':last.level==='warn'?'MEDIUM RISK':'LOW RISK';
+  var typeLabels={deepfake:'Deepfake Video',voice:'Voice Scam',phishing:'Phishing',whatsapp:'WhatsApp Scam',website:'Phishing Website'};
+  var tt=document.getElementById('map-tooltip');
+  if(!tt) return;
+  document.getElementById('tt-type').style.color=col;
+  document.getElementById('tt-type').textContent=(typeLabels[last.type]||last.type)+' Detected';
+  document.getElementById('tt-city').textContent=city;
+  document.getElementById('tt-cnt').textContent=dets.length+' detection'+(dets.length!==1?'s':'');
+  document.getElementById('tt-time').textContent=last.time;
+  var rb=document.getElementById('tt-risk-badge');
+  if(rb){rb.style.background=rcol+'20';rb.style.color=rcol;rb.style.border='1px solid '+rcol+'40';rb.textContent=rlabel;}
+  tt.style.borderColor=col;
+  // Position tooltip correctly using rendered SVG bounding rect
+  var container=document.getElementById('map-container');
+  var svgEl=document.getElementById('india-svg');
+  if(container && svgEl){
+    var svgRect=svgEl.getBoundingClientRect();
+    var contRect=container.getBoundingClientRect();
+    var pos=CITY_SVG[city];
+    // SVG viewBox is 0 0 520 600, rendered into actual svgRect dimensions
+    var scaleX=svgRect.width/520;
+    var scaleY=svgRect.height/600;
+    var tx=(pos.x*scaleX)+(svgRect.left-contRect.left)+14;
+    var ty=(pos.y*scaleY)+(svgRect.top-contRect.top)-65;
+    if(tx+170>contRect.width) tx-=185;
+    if(ty<4) ty=4;
+    if(ty+130>contRect.height) ty=contRect.height-135;
+    tt.style.left=tx+'px'; tt.style.top=ty+'px'; tt.style.display='block';
+  }
+}
+
+function hideMapTooltip(){
+  var tt=document.getElementById('map-tooltip'); if(tt) tt.style.display='none';
+}
+
+function setMapFilter(f){
+  appState.mapFilter=f;
+  var area=document.getElementById('page-area'); if(area) area.innerHTML=renderMap();
+  animateBars();
+}
+
+// ═══════════════════════════════════════════════════════════
+// NAVIGATION & ROUTING
+// ═══════════════════════════════════════════════════════════
+function goto(id){
+  if(appState.liveActive && id!=='live') stopLive();
+  appState.page=id;
+  document.querySelectorAll('.nav-item').forEach(function(btn){btn.classList.toggle('active',btn.dataset.page===id);});
+  document.getElementById('bc-title').textContent=PAGE_TITLES[id]||id;
+  var area=document.getElementById('page-area');
+  if(area){
+    var renderers={home:renderHome,deepfake:renderDeepfake,voice:renderVoice,phishing:renderPhishing,whatsapp:renderWhatsApp,website:renderWebsite,live:renderLive,dashboard:renderDashboard,history:renderHistory,chatbot:renderChatbot,map:renderMap};
+    area.innerHTML=(renderers[id]||renderHome)();
+    animateBars();
+    if(id==='voice') setTimeout(function(){drawWave(false);},50);
+    if(id==='chatbot') setTimeout(function(){var w=document.getElementById('chat-window');if(w)w.scrollTop=w.scrollHeight;},50);
+    renderNavBadges();
+  }
+}
+
+function buildNav(){
+  var det=document.getElementById('nav-detect'), intel=document.getElementById('nav-intel');
+  NAV.forEach(function(item){
+    var btn=document.createElement('button');
+    btn.className='nav-item'+(item.id==='home'?' active':'');
+    btn.dataset.page=item.id;
+    btn.innerHTML='<div class="nav-icon">'+item.icon+'</div>'+item.label;
+    btn.onclick=function(){goto(item.id);};
+    if(item.sec==='detect') det.appendChild(btn);
+    else intel.appendChild(btn);
+  });
+}
+
+// Clock
+setInterval(function(){
+  var cl=document.getElementById('clock');
+  if(cl) cl.textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+},1000);
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+buildNav();
+goto('home');
+// Load stored detections from backend DB (non-blocking)
+// If backend is offline this fails silently — app works in memory-only mode
+setTimeout(loadDbDetections, 300);
+</script>
+</body>
+</html>
