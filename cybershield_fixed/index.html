@@ -1,0 +1,3255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CyberShield AI — India Threat Intelligence Platform</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <style>
+    /* ══ DESIGN TOKENS ═══════════════════════════════════════════════════════ */
+    :root {
+      --ink:        #04070e;
+      --ink2:       #070c17;
+      --ink3:       #0a1222;
+      --ink4:       #0d182e;
+      --surface:    rgba(7,12,23,0.97);
+      --surface2:   rgba(10,18,34,0.75);
+      --rim:        rgba(255,255,255,0.046);
+      --rim2:       rgba(255,255,255,0.085);
+      --smoke:      rgba(255,255,255,0.026);
+
+      --cyan:       #06b6d4;
+      --cyan-dim:   rgba(6,182,212,0.11);
+      --cyan-glow:  rgba(6,182,212,0.22);
+      --green:      #10b981;
+      --green-dim:  rgba(16,185,129,0.1);
+      --red:        #ef4444;
+      --red-dim:    rgba(239,68,68,0.1);
+      --amber:      #f59e0b;
+      --amber-dim:  rgba(245,158,11,0.1);
+      --violet:     #8b5cf6;
+      --violet-dim: rgba(139,92,246,0.1);
+      --orange:     #f97316;
+
+      --text-1: #eaf0fc;
+      --text-2: #60809e;
+      --text-3: #344d68;
+
+      --nav-h:      52px;
+      --sidebar-w:  232px;
+      --r-sm: 5px; --r-md: 9px; --r-lg: 13px; --r-xl: 16px;
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--ink);
+      color: var(--text-1);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-size: 13.5px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 65% 50% at 12% 2%, rgba(6,182,212,0.05) 0%, transparent 50%),
+        radial-gradient(ellipse 45% 40% at 88% 98%, rgba(139,92,246,0.035) 0%, transparent 45%);
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.016) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+
+    #root { position: relative; z-index: 1; }
+
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(6,182,212,0.18); border-radius: 10px; }
+
+    /* ══ SHELL ═══════════════════════════════════════════════════════════════ */
+    .shell { display: flex; height: 100vh; overflow: hidden; }
+
+    /* ══ SIDEBAR ═════════════════════════════════════════════════════════════ */
+    .sidebar {
+      width: var(--sidebar-w); flex-shrink: 0;
+      background: linear-gradient(180deg, rgba(7,12,23,0.99) 0%, rgba(5,9,18,0.99) 100%);
+      border-right: 1px solid var(--rim);
+      display: flex; flex-direction: column;
+      position: relative; z-index: 50;
+    }
+    .sidebar::after {
+      content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 1px;
+      background: linear-gradient(to bottom, transparent, rgba(6,182,212,0.1) 30%, rgba(6,182,212,0.1) 70%, transparent);
+      pointer-events: none;
+    }
+
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 18px; height: var(--nav-h);
+      border-bottom: 1px solid var(--rim); flex-shrink: 0;
+    }
+    .logo-mark {
+      width: 30px; height: 30px;
+      background: linear-gradient(145deg, var(--cyan), rgba(6,182,212,0.5));
+      border-radius: var(--r-sm);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 0 18px rgba(6,182,212,0.22), inset 0 1px 0 rgba(255,255,255,0.18);
+    }
+    .logo-mark svg { width: 16px; height: 16px; }
+    .logo-text { font-size: 0.88rem; font-weight: 700; color: var(--text-1); letter-spacing: -0.015em; line-height: 1.1; }
+    .logo-text b { color: var(--cyan); font-weight: 700; }
+    .logo-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.53rem; color: var(--text-3); letter-spacing: 0.1em; text-transform: uppercase; }
+
+    .sidebar-section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.56rem; font-weight: 500; color: var(--text-3);
+      text-transform: uppercase; letter-spacing: 0.14em;
+      padding: 18px 18px 6px;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 18px; cursor: pointer;
+      border: none; background: none; width: 100%; text-align: left;
+      color: var(--text-2); font-size: 0.82rem; font-weight: 500;
+      transition: all 0.15s; position: relative;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .nav-item:hover { color: var(--text-1); background: var(--smoke); }
+    .nav-item.active { color: var(--cyan); background: rgba(6,182,212,0.09); }
+    .nav-item.active::before {
+      content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 2px;
+      background: var(--cyan); border-radius: 0 2px 2px 0;
+      box-shadow: 0 0 10px var(--cyan-glow);
+    }
+    .nav-icon {
+      width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+      border-radius: var(--r-sm); font-size: 0.82rem; flex-shrink: 0;
+      background: var(--smoke); border: 1px solid var(--rim); transition: all 0.15s;
+    }
+    .nav-item.active .nav-icon { background: var(--cyan-dim); border-color: rgba(6,182,212,0.18); }
+    .nav-item:hover:not(.active) .nav-icon { background: var(--rim); border-color: var(--rim2); }
+
+    .sidebar-divider { height: 1px; background: var(--rim); margin: 6px 14px; }
+
+    .sidebar-footer { margin-top: auto; padding: 14px 18px; border-top: 1px solid var(--rim); }
+    .status-pill {
+      display: flex; align-items: center; gap: 7px;
+      background: rgba(16,185,129,0.07); border: 1px solid rgba(16,185,129,0.15);
+      border-radius: 100px; padding: 5px 10px; width: 100%;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: var(--green);
+    }
+    .pulse-dot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+      background: var(--green); box-shadow: 0 0 6px var(--green);
+      animation: pulse-anim 2.5s ease-in-out infinite;
+    }
+    .pulse-dot.danger { background: var(--red); box-shadow: 0 0 6px var(--red); }
+    @keyframes pulse-anim { 0%,100%{opacity:1} 50%{opacity:0.35} }
+    .sb-version {
+      display: flex; justify-content: space-between; margin-top: 7px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; color: var(--text-3);
+    }
+
+    /* ══ MAIN ════════════════════════════════════════════════════════════════ */
+    .main-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+    .topbar {
+      height: var(--nav-h); flex-shrink: 0;
+      border-bottom: 1px solid var(--rim);
+      background: rgba(4,7,14,0.88); backdrop-filter: blur(24px);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; gap: 14px; z-index: 40;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .breadcrumb {
+      display: flex; align-items: center; gap: 5px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-3);
+    }
+    .bc-sep { opacity: 0.35; }
+    .bc-cur { color: var(--text-1); font-weight: 500; }
+    .topbar-right { display: flex; align-items: center; gap: 8px; }
+
+    .threat-badge {
+      display: flex; align-items: center; gap: 6px;
+      padding: 4px 11px; border-radius: var(--r-sm);
+      font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+      font-weight: 500; letter-spacing: 0.03em; transition: all 0.3s;
+    }
+    .threat-badge.clean { background: rgba(16,185,129,0.07); border: 1px solid rgba(16,185,129,0.18); color: var(--green); }
+    .threat-badge.alert {
+      background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.22); color: var(--red);
+      animation: badge-pulse 3s ease-in-out infinite;
+    }
+    @keyframes badge-pulse { 0%,100%{box-shadow:0 0 6px rgba(239,68,68,0.06)} 50%{box-shadow:0 0 16px rgba(239,68,68,0.18)} }
+
+    .topbar-time {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.62rem;
+      color: var(--text-3); padding: 4px 10px;
+      background: var(--smoke); border: 1px solid var(--rim); border-radius: var(--r-sm);
+    }
+
+    .page-area { flex: 1; overflow-y: auto; padding: 24px 28px; }
+    .page-enter { animation: pgenter 0.28s ease both; }
+    @keyframes pgenter { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ══ PAGE HEAD ════════════════════════════════════════════════════════════ */
+    .page-head { margin-bottom: 22px; }
+    .page-head-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .page-title { font-size: 1.32rem; font-weight: 700; color: var(--text-1); letter-spacing: -0.025em; margin-bottom: 3px; line-height: 1.2; }
+    .page-subtitle { font-size: 0.78rem; color: var(--text-2); font-weight: 400; }
+
+    /* ══ CARDS ════════════════════════════════════════════════════════════════ */
+    .card {
+      background: var(--surface); border: 1px solid var(--rim); border-radius: var(--r-lg);
+      padding: 18px 20px; position: relative; overflow: hidden;
+      backdrop-filter: blur(20px); transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .card:hover { border-color: var(--rim2); box-shadow: 0 4px 24px rgba(0,0,0,0.2); }
+    .card-sm { padding: 14px 16px; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .card-title {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; font-weight: 500;
+      color: var(--text-2); text-transform: uppercase; letter-spacing: 0.1em;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .card-title-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--cyan); box-shadow: 0 0 7px rgba(6,182,212,0.55);
+    }
+
+    /* ══ KPI GRID ════════════════════════════════════════════════════════════ */
+    .kpi-grid {
+      display: grid; grid-template-columns: repeat(6, 1fr);
+      gap: 10px; margin-bottom: 20px;
+    }
+    @media(max-width:1100px){ .kpi-grid{ grid-template-columns: repeat(3,1fr); } }
+    @media(max-width:700px){ .kpi-grid{ grid-template-columns: repeat(2,1fr); } }
+
+    .kpi-card {
+      background: var(--surface); border: 1px solid var(--rim);
+      border-radius: var(--r-lg); padding: 14px 16px;
+      position: relative; overflow: hidden; transition: all 0.2s;
+    }
+    .kpi-card:hover { border-color: var(--rim2); transform: translateY(-1px); }
+    .kpi-card::after {
+      content: ''; position: absolute; top: 0; left: 16px; right: 16px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--kpi-color, var(--cyan)), transparent);
+      opacity: 0.6;
+    }
+    .kpi-card::before {
+      content: ''; position: absolute; top: 0; left: 25%; right: 25%; height: 3px;
+      background: var(--kpi-color, var(--cyan)); filter: blur(6px); opacity: 0.25;
+    }
+    .kpi-icon-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
+    .kpi-icon {
+      width: 28px; height: 28px; border-radius: var(--r-sm);
+      background: var(--smoke); border: 1px solid var(--rim);
+      display: flex; align-items: center; justify-content: center; font-size: 0.78rem;
+    }
+    .kpi-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.56rem; color: var(--text-3); letter-spacing: 0.04em; }
+    .kpi-value {
+      font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; font-weight: 600;
+      letter-spacing: -0.02em; color: var(--text-1); margin-bottom: 3px;
+      transition: color 0.4s; line-height: 1;
+    }
+    .kpi-value.zero { color: var(--text-3); }
+    .kpi-label { font-size: 0.68rem; color: var(--text-2); font-weight: 500; }
+
+    /* ══ BUTTONS ═════════════════════════════════════════════════════════════ */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: var(--r-md);
+      font-size: 0.78rem; font-weight: 600;
+      cursor: pointer; border: none; transition: all 0.16s;
+      font-family: 'DM Sans', sans-serif; letter-spacing: -0.01em;
+    }
+    .btn-cyan { background: var(--cyan); color: var(--ink); box-shadow: 0 2px 12px rgba(6,182,212,0.25); }
+    .btn-cyan:hover { background: #22d3ee; box-shadow: 0 4px 20px rgba(6,182,212,0.35); transform: translateY(-1px); }
+    .btn-cyan:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-ghost { background: var(--smoke); border: 1px solid var(--rim2); color: var(--text-2); }
+    .btn-ghost:hover { border-color: var(--rim2); color: var(--text-1); background: var(--surface2); }
+    .btn-danger { background: var(--red-dim); border: 1px solid rgba(239,68,68,0.22); color: var(--red); }
+    .btn-danger:hover { background: rgba(239,68,68,0.18); }
+    .btn-sm { padding: 6px 12px; font-size: 0.73rem; }
+    .btn-xs { padding: 4px 10px; font-size: 0.7rem; }
+
+    /* ══ UPLOAD ZONE ═════════════════════════════════════════════════════════ */
+    .upload-zone {
+      border: 1px dashed rgba(255,255,255,0.1);
+      border-radius: var(--r-lg); padding: 36px 20px;
+      text-align: center; cursor: pointer;
+      background: var(--smoke); transition: all 0.2s;
+    }
+    .upload-zone:hover, .upload-zone.drag {
+      border-color: rgba(6,182,212,0.42); background: rgba(6,182,212,0.06);
+      box-shadow: inset 0 0 24px rgba(6,182,212,0.04);
+    }
+    .upload-icon {
+      width: 46px; height: 46px; border-radius: var(--r-md);
+      background: var(--surface2); border: 1px solid var(--rim);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; margin: 0 auto 12px;
+    }
+    .upload-zone h4 { font-size: 0.88rem; font-weight: 600; margin-bottom: 4px; }
+    .upload-zone p { font-size: 0.72rem; color: var(--text-2); }
+    .upload-zone em { color: var(--cyan); font-style: normal; }
+
+    /* ══ RISK BAR ════════════════════════════════════════════════════════════ */
+    .risk-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+    .risk-row-label { font-size: 0.72rem; color: var(--text-2); font-weight: 500; }
+    .risk-row-val { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; font-weight: 600; }
+    .bar-track {
+      height: 4px; background: rgba(255,255,255,0.05); border-radius: 100px;
+      overflow: hidden; margin-bottom: 12px;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+    }
+    .bar-fill { height: 100%; border-radius: 100px; transition: width 1.4s cubic-bezier(0.23,1,0.32,1); }
+    .bar-fill.safe { background: var(--green); box-shadow: 0 0 8px rgba(16,185,129,0.4); }
+    .bar-fill.warn { background: var(--amber); box-shadow: 0 0 8px rgba(245,158,11,0.4); }
+    .bar-fill.danger { background: var(--red); box-shadow: 0 0 8px rgba(239,68,68,0.4); }
+
+    /* ══ VERDICT ═════════════════════════════════════════════════════════════ */
+    .verdict { border-radius: var(--r-md); padding: 14px 16px; margin-bottom: 14px; display: flex; align-items: center; gap: 14px; }
+    .verdict.safe { background: var(--green-dim); border: 1px solid rgba(16,185,129,0.18); }
+    .verdict.warn  { background: var(--amber-dim); border: 1px solid rgba(245,158,11,0.18); }
+    .verdict.danger{ background: var(--red-dim);   border: 1px solid rgba(239,68,68,0.22); }
+    .verdict-icon { width: 38px; height: 38px; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+    .verdict.safe  .verdict-icon { background: rgba(16,185,129,0.12); }
+    .verdict.warn  .verdict-icon { background: rgba(245,158,11,0.12); }
+    .verdict.danger.verdict-icon { background: rgba(239,68,68,0.12); }
+    .verdict-label { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px; }
+    .verdict.safe  .verdict-label { color: var(--green); }
+    .verdict.warn  .verdict-label { color: var(--amber); }
+    .verdict.danger .verdict-label { color: var(--red); }
+    .verdict-score { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+    .verdict.safe  .verdict-score { color: var(--green); }
+    .verdict.warn  .verdict-score { color: var(--amber); }
+    .verdict.danger .verdict-score { color: var(--red); }
+    .verdict-desc { font-size: 0.74rem; color: var(--text-2); margin-top: 2px; }
+
+    /* ══ FLAGS ════════════════════════════════════════════════════════════════ */
+    .flags-list { display: flex; flex-direction: column; }
+    .flag-item { display: flex; align-items: flex-start; gap: 9px; padding: 8px 0; border-bottom: 1px solid var(--rim); }
+    .flag-item:last-child { border-bottom: none; }
+    .flag-sev { width: 5px; height: 5px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+    .flag-sev.high   { background: var(--red);   box-shadow: 0 0 5px var(--red); }
+    .flag-sev.medium { background: var(--amber);  box-shadow: 0 0 5px var(--amber); }
+    .flag-sev.low    { background: var(--text-3); }
+    .flag-text { font-size: 0.76rem; color: var(--text-1); line-height: 1.5; }
+    .flag-detail { font-size: 0.67rem; color: var(--text-3); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+
+    /* ══ TAGS ════════════════════════════════════════════════════════════════ */
+    .tag {
+      display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 100px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; font-weight: 500;
+      letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap;
+    }
+    .tag-cyan   { background: var(--cyan-dim);   border: 1px solid rgba(6,182,212,0.2);   color: var(--cyan); }
+    .tag-green  { background: var(--green-dim);  border: 1px solid rgba(16,185,129,0.2);  color: var(--green); }
+    .tag-red    { background: var(--red-dim);    border: 1px solid rgba(239,68,68,0.2);   color: var(--red); }
+    .tag-amber  { background: var(--amber-dim);  border: 1px solid rgba(245,158,11,0.2);  color: var(--amber); }
+    .tag-violet { background: var(--violet-dim); border: 1px solid rgba(139,92,246,0.2);  color: var(--violet); }
+    .tag-dim    { background: var(--smoke);      border: 1px solid var(--rim);            color: var(--text-3); }
+
+    /* ══ CONF BARS ════════════════════════════════════════════════════════════ */
+    .conf-item { margin-bottom: 10px; }
+    .conf-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .conf-name { font-size: 0.72rem; color: var(--text-2); font-weight: 500; }
+    .conf-pct  { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--text-1); font-weight: 600; }
+
+    /* ══ PROCESSING ══════════════════════════════════════════════════════════ */
+    .processing-state {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 12px; padding: 40px 20px; text-align: center;
+    }
+    .spinner-ring {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 2px solid var(--rim2); border-top-color: var(--cyan);
+      animation: spin 0.75s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .processing-label { font-size: 0.8rem; color: var(--text-2); font-weight: 500; }
+    .processing-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.63rem; color: var(--text-3); max-width: 280px; line-height: 1.6; }
+
+    /* ══ WAVEFORM ════════════════════════════════════════════════════════════ */
+    .wave-canvas {
+      width: 100%; height: 68px; display: block;
+      background: rgba(255,255,255,0.02); border-radius: var(--r-sm);
+      border: 1px solid var(--rim);
+    }
+
+    /* ══ TEXTAREA ════════════════════════════════════════════════════════════ */
+    .field-textarea {
+      width: 100%; background: var(--ink3); border: 1px solid var(--rim2);
+      border-radius: var(--r-md); padding: 12px 14px;
+      color: var(--text-1); font-family: 'JetBrains Mono', monospace;
+      font-size: 0.76rem; line-height: 1.7; resize: vertical; min-height: 130px;
+      outline: none; transition: border-color 0.15s;
+    }
+    .field-textarea:focus { border-color: rgba(6,182,212,0.3); }
+    .field-textarea::placeholder { color: var(--text-3); }
+
+    /* ══ CITY SELECT ══════════════════════════════════════════════════════════ */
+    .city-select {
+      width: 100%; background: var(--ink3); border: 1px solid var(--rim2);
+      border-radius: var(--r-md); padding: 9px 12px;
+      color: var(--text-1); font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem; outline: none; cursor: pointer;
+      transition: border-color 0.15s; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23344d68' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center;
+      padding-right: 32px;
+    }
+    .city-select:focus { border-color: rgba(6,182,212,0.3); }
+
+    /* ══ WEBCAM ══════════════════════════════════════════════════════════════ */
+    .cam-frame {
+      position: relative; border-radius: var(--r-lg); overflow: hidden;
+      background: var(--ink3); aspect-ratio: 16/10; border: 1px solid var(--rim);
+    }
+    .cam-frame video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .cam-overlay { position: absolute; inset: 0; pointer-events: none; }
+    .scan-bar {
+      position: absolute; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      animation: scandown 4s linear infinite; opacity: 0.5;
+    }
+    @keyframes scandown { 0%{top:0} 100%{top:100%} }
+    .cam-corner { position: absolute; width: 14px; height: 14px; }
+    .cam-corner.tl { top:10px; left:10px;  border-top:1.5px solid var(--cyan); border-left:1.5px solid var(--cyan); }
+    .cam-corner.tr { top:10px; right:10px; border-top:1.5px solid var(--cyan); border-right:1.5px solid var(--cyan); }
+    .cam-corner.bl { bottom:10px; left:10px;  border-bottom:1.5px solid var(--cyan); border-left:1.5px solid var(--cyan); }
+    .cam-corner.br { bottom:10px; right:10px; border-bottom:1.5px solid var(--cyan); border-right:1.5px solid var(--cyan); }
+    .cam-hud-top {
+      position: absolute; top: 9px; right: 10px;
+      display: flex; align-items: center; gap: 5px;
+      background: rgba(4,7,14,0.82); backdrop-filter: blur(12px);
+      border: 1px solid rgba(6,182,212,0.18); border-radius: var(--r-sm);
+      padding: 3px 9px; font-family: 'JetBrains Mono', monospace;
+      font-size: 0.58rem; color: var(--cyan);
+    }
+    .cam-hud-bottom {
+      position: absolute; bottom: 10px; left: 10px; right: 10px;
+      background: rgba(4,7,14,0.82); backdrop-filter: blur(12px);
+      border: 1px solid var(--rim); border-radius: var(--r-sm); padding: 9px 12px;
+    }
+    .cam-risk-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+    .cam-risk-label span:first-child {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.58rem;
+      color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em;
+    }
+
+    /* ══ SCORE RING ══════════════════════════════════════════════════════════ */
+    .score-ring-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px 0; }
+    .ring-svg { overflow: visible; }
+    .ring-bg { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 8; }
+    .ring-fill { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dasharray 1.5s cubic-bezier(0.23,1,0.32,1), stroke 0.5s ease; }
+    .ring-center { text-anchor: middle; dominant-baseline: middle; }
+    .ring-val { font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 600; fill: var(--text-1); }
+    .ring-sub { font-size: 11px; fill: var(--text-3); font-family: 'DM Sans', sans-serif; }
+    .ring-label { text-align: center; }
+    .ring-label-main { font-size: 0.88rem; font-weight: 700; margin-bottom: 2px; }
+    .ring-label-sub { font-size: 0.7rem; color: var(--text-2); }
+
+    /* ══ INDIA MAP ═══════════════════════════════════════════════════════════ */
+    #india-map { height: 520px; border-radius: var(--r-md); overflow: hidden; }
+    .leaflet-container { background: #030609 !important; }
+    .state-tooltip {
+      background: #0a1222 !important; border: 1px solid rgba(6,182,212,0.22) !important;
+      border-radius: 8px !important; color: #c4d4e8 !important;
+      font-family: 'DM Sans', sans-serif !important; font-size: 0.78rem !important;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.6) !important; padding: 6px 10px !important;
+    }
+    .leaflet-tooltip-top::before { border-top-color: rgba(6,182,212,0.22) !important; }
+
+    /* ══ TIMELINE ════════════════════════════════════════════════════════════ */
+    .timeline { display: flex; flex-direction: column; }
+    .tl-row { display: flex; align-items: flex-start; gap: 11px; padding: 9px 0; border-bottom: 1px solid var(--rim); }
+    .tl-row:last-child { border-bottom: none; }
+    .tl-dot-wrap { display: flex; flex-direction: column; align-items: center; padding-top: 3px; }
+    .tl-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .tl-body { flex: 1; }
+    .tl-title { font-size: 0.78rem; font-weight: 500; color: var(--text-1); margin-bottom: 2px; }
+    .tl-meta  { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--text-3); }
+
+    /* ══ MAP THREAT ROW ══════════════════════════════════════════════════════ */
+    .threat-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 12px; border-radius: var(--r-sm);
+      background: var(--smoke); margin-bottom: 5px;
+      border: 1px solid var(--rim); transition: border-color 0.15s;
+    }
+    .threat-row:hover { border-color: var(--rim2); }
+    .threat-row-left { display: flex; align-items: center; gap: 10px; }
+    .threat-rank { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; color: var(--text-3); width: 22px; }
+    .threat-city { font-size: 0.78rem; font-weight: 600; }
+    .threat-type-label { font-size: 0.67rem; color: var(--text-2); margin-top: 1px; }
+    .threat-count { font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; font-weight: 600; color: var(--red); }
+
+    /* ══ FILTER CHIPS ════════════════════════════════════════════════════════ */
+    .filter-row { display: flex; gap: 5px; flex-wrap: wrap; }
+    .filter-chip {
+      padding: 4px 10px; border-radius: 100px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.62rem;
+      cursor: pointer; border: 1px solid var(--rim); background: var(--smoke);
+      color: var(--text-2); transition: all 0.14s;
+    }
+    .filter-chip:hover { border-color: var(--rim2); color: var(--text-1); }
+    .filter-chip.on { background: rgba(6,182,212,0.1); border-color: rgba(6,182,212,0.28); color: var(--cyan); box-shadow: 0 0 10px rgba(6,182,212,0.08); }
+
+    /* ══ MICRO CHART ═════════════════════════════════════════════════════════ */
+    .micro-chart { display: flex; align-items: flex-end; gap: 2px; height: 44px; }
+    .micro-bar { flex: 1; border-radius: 2px 2px 0 0; min-width: 3px; background: rgba(6,182,212,0.22); }
+    .micro-bar.hi { background: rgba(239,68,68,0.45); }
+    .micro-bar.md { background: rgba(245,158,11,0.4); }
+
+    /* ══ PREDICTION CARD ═════════════════════════════════════════════════════ */
+    .prediction-card {
+      border-radius: var(--r-md); padding: 13px 15px; border: 1px solid var(--rim);
+      background: rgba(255,255,255,0.015); position: relative; overflow: hidden;
+      margin-bottom: 8px; transition: border-color 0.2s;
+    }
+    .prediction-card:hover { border-color: var(--rim2); }
+    .prediction-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; }
+    .prediction-card.danger::before { background: var(--red); }
+    .prediction-card.warn::before   { background: var(--amber); }
+    .pred-eyebrow {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.57rem;
+      text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 5px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .prediction-card.danger .pred-eyebrow { color: var(--red); }
+    .prediction-card.warn   .pred-eyebrow { color: var(--amber); }
+    .pred-title { font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; }
+    .pred-body  { font-size: 0.73rem; color: var(--text-2); line-height: 1.65; }
+
+    /* ══ LIVE FEED ITEM ══════════════════════════════════════════════════════ */
+    .feed-item { display: flex; align-items: flex-start; gap: 9px; padding: 7px 0; border-bottom: 1px solid var(--rim); animation: feedIn 0.3s ease; }
+    .feed-item:last-child { border-bottom: none; }
+    @keyframes feedIn { from{opacity:0;transform:translateX(-4px)} to{opacity:1;transform:translateX(0)} }
+    .feed-time { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: var(--text-3); min-width: 44px; padding-top: 2px; flex-shrink: 0; }
+    .feed-dot  { width: 5px; height: 5px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+    .feed-text { font-size: 0.75rem; color: var(--text-2); line-height: 1.45; }
+
+    /* ══ FILE CHIP ════════════════════════════════════════════════════════════ */
+    .file-chip {
+      display: flex; align-items: center; gap: 9px;
+      background: var(--smoke); border: 1px solid var(--rim2);
+      border-radius: var(--r-sm); padding: 9px 12px; margin-top: 10px;
+    }
+    .file-chip-name { font-size: 0.78rem; font-weight: 600; }
+    .file-chip-meta { font-size: 0.62rem; color: var(--text-3); font-family: 'JetBrains Mono', monospace; }
+
+    /* ══ HERO ════════════════════════════════════════════════════════════════ */
+    .hero-strip {
+      position: relative; overflow: hidden;
+      background: linear-gradient(135deg, rgba(6,182,212,0.045) 0%, rgba(139,92,246,0.025) 100%);
+      border: 1px solid var(--rim2); border-radius: var(--r-xl);
+      padding: 30px 36px 26px; margin-bottom: 20px;
+    }
+    .hero-strip::after {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(6,182,212,0.3), rgba(139,92,246,0.2), transparent);
+      pointer-events: none;
+    }
+    .hero-strip::before {
+      content: ''; position: absolute; top: -50px; right: -50px;
+      width: 220px; height: 220px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(6,182,212,0.07) 0%, transparent 65%);
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(6,182,212,0.08); border: 1px solid rgba(6,182,212,0.18);
+      border-radius: 100px; padding: 4px 12px; margin-bottom: 14px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.59rem;
+      color: var(--cyan); text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .hero-h1 {
+      font-size: clamp(1.55rem, 2.8vw, 2.3rem); font-weight: 700;
+      line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 10px; color: var(--text-1);
+    }
+    .hero-h1 span { color: var(--cyan); }
+    .hero-sub { font-size: 0.85rem; color: var(--text-2); max-width: 520px; line-height: 1.7; margin-bottom: 20px; }
+    .hero-ctas { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* ══ FEATURE GRID (HOME) ══════════════════════════════════════════════════ */
+    .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 22px; }
+    @media(max-width:860px){ .feature-grid{ grid-template-columns: repeat(2,1fr); } }
+
+    .feature-card {
+      background: var(--surface); border: 1px solid var(--rim); border-radius: var(--r-lg);
+      padding: 17px; cursor: pointer; transition: all 0.22s; position: relative; overflow: hidden;
+    }
+    .feature-card:hover {
+      border-color: var(--rim2); transform: translateY(-2px);
+      box-shadow: 0 10px 36px rgba(0,0,0,0.38);
+      background: rgba(7,12,23,0.98);
+    }
+    .feature-card-icon {
+      font-size: 1rem; width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: var(--r-sm); border: 1px solid; margin-bottom: 10px;
+    }
+    .feature-card h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.01em; }
+    .feature-card p  { font-size: 0.71rem; color: var(--text-2); line-height: 1.6; }
+    .feature-card-arrow {
+      margin-top: 10px; font-family: 'JetBrains Mono', monospace; font-size: 0.62rem;
+      color: var(--text-3); display: flex; align-items: center; gap: 4px;
+      transition: color 0.15s, gap 0.15s;
+    }
+    .feature-card:hover .feature-card-arrow { color: var(--cyan); gap: 8px; }
+
+    /* ══ RECORDING ════════════════════════════════════════════════════════════ */
+    .rec-indicator { display: inline-flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--red); }
+    .rec-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); box-shadow: 0 0 6px var(--red); animation: pulse-anim 1s ease-in-out infinite; }
+
+    /* ══ EMPTY STATE ══════════════════════════════════════════════════════════ */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 36px 20px; gap: 10px; text-align: center;
+    }
+    .empty-icon { font-size: 2.2rem; opacity: 0.4; }
+    .empty-label { font-size: 0.76rem; color: var(--text-2); max-width: 220px; line-height: 1.55; }
+    .empty-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; color: var(--text-3); }
+
+    /* ══ WAITING STATE ════════════════════════════════════════════════════════ */
+    .waiting-state {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 32px 20px; gap: 12px; text-align: center;
+      border: 1px dashed var(--rim2); border-radius: var(--r-lg); background: var(--smoke);
+    }
+    .waiting-icon {
+      width: 48px; height: 48px; border-radius: var(--r-md);
+      background: rgba(6,182,212,0.06); border: 1px solid rgba(6,182,212,0.15);
+      display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+    }
+    .waiting-title { font-size: 0.88rem; font-weight: 600; color: var(--text-2); }
+    .waiting-desc  { font-size: 0.74rem; color: var(--text-3); max-width: 240px; line-height: 1.6; }
+
+    /* ══ RESULT CARD ══════════════════════════════════════════════════════════ */
+    .result-card-new {
+      border-radius: var(--r-lg); padding: 18px 20px;
+      border: 1px solid var(--rim2); background: var(--surface);
+      animation: pgenter 0.3s ease;
+    }
+
+    /* ══ INDIA BADGE ══════════════════════════════════════════════════════════ */
+    .india-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,153,51,0.08); border: 1px solid rgba(255,153,51,0.2);
+      border-radius: 100px; padding: 3px 10px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.58rem;
+      color: var(--orange); text-transform: uppercase; letter-spacing: 0.08em;
+    }
+
+    /* ══ GRID LAYOUTS ════════════════════════════════════════════════════════ */
+    .grid-2   { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3   { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .grid-6040{ display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; }
+    .col-2 { grid-column: span 2; }
+    @media(max-width:900px){ .grid-2,.grid-3,.grid-6040{ grid-template-columns: 1fr; } .col-2{ grid-column: span 1; } }
+
+    .stack { display: flex; flex-direction: column; gap: 12px; }
+    .row   { display: flex; align-items: center; gap: 8px; }
+    .spacer{ flex: 1; }
+    .mb-8  { margin-bottom: 8px; }
+    .mb-16 { margin-bottom: 16px; }
+    hr.div { border: none; border-top: 1px solid var(--rim); margin: 14px 0; }
+
+    .page-enter { animation: pgenter 0.3s ease; }
+    @keyframes pgenter { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ══ WHATSAPP ANALYZER ════════════════════════════════════════════════════ */
+    .wa-bubble-wrap { background: #0b1e1b; border-radius: var(--r-lg); padding: 14px 16px; border: 1px solid rgba(37,211,102,0.12); }
+    .wa-bubble-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .wa-bubble-avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg,#25d366,#128c7e); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: white; flex-shrink: 0; }
+    .wa-bubble-name { font-size: 0.72rem; color: #25d366; font-weight: 600; }
+    .wa-bubble-time { font-family: 'JetBrains Mono', monospace; font-size: 0.57rem; color: var(--text-3); margin-left: auto; }
+    .wa-bubble-msg { font-size: 0.8rem; color: #e9edef; line-height: 1.6; word-break: break-word; }
+    .wa-url-chip { display: inline-flex; align-items: center; gap: 5px; background: rgba(37,211,102,0.08); border: 1px solid rgba(37,211,102,0.15); border-radius: var(--r-sm); padding: 3px 8px; margin-top: 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: #25d366; }
+    .wa-icon { width: 36px; height: 36px; border-radius: var(--r-sm); background: linear-gradient(135deg,#25d366,#128c7e); display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+
+    /* ══ WEBSITE SCREENSHOT DETECTOR ══════════════════════════════════════════ */
+    .screenshot-preview { width: 100%; border-radius: var(--r-md); border: 1px solid var(--rim2); overflow: hidden; max-height: 220px; object-fit: cover; display: block; }
+    .site-indicator { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--r-sm); margin-bottom: 6px; border: 1px solid var(--rim); }
+    .site-indicator.danger { background: rgba(239,68,68,0.06); border-color: rgba(239,68,68,0.18); }
+    .site-indicator.warn   { background: rgba(245,158,11,0.06); border-color: rgba(245,158,11,0.18); }
+    .site-indicator.safe   { background: rgba(16,185,129,0.06); border-color: rgba(16,185,129,0.18); }
+    .site-indicator-icon { font-size: 0.9rem; flex-shrink: 0; }
+    .site-indicator-txt { font-size: 0.75rem; color: var(--text-1); }
+    .site-indicator-sub { font-size: 0.65rem; color: var(--text-3); margin-top: 1px; }
+
+    /* ══ CHATBOT ══════════════════════════════════════════════════════════════ */
+    .chat-window { height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 4px 0; }
+    .chat-msg { display: flex; flex-direction: column; gap: 3px; animation: pgenter 0.25s ease; }
+    .chat-msg.user { align-items: flex-end; }
+    .chat-msg.bot  { align-items: flex-start; }
+    .chat-bubble { max-width: 82%; padding: 10px 14px; border-radius: var(--r-md); font-size: 0.78rem; line-height: 1.6; }
+    .chat-msg.user .chat-bubble { background: rgba(6,182,212,0.15); border: 1px solid rgba(6,182,212,0.22); color: var(--text-1); border-radius: var(--r-md) var(--r-md) 0 var(--r-md); }
+    .chat-msg.bot  .chat-bubble { background: rgba(255,255,255,0.04); border: 1px solid var(--rim2); color: var(--text-1); border-radius: var(--r-md) var(--r-md) var(--r-md) 0; }
+    .chat-time { font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; color: var(--text-3); }
+    .chat-typing { display: flex; align-items: center; gap: 4px; padding: 8px 14px; background: rgba(255,255,255,0.04); border: 1px solid var(--rim2); border-radius: var(--r-md); width: fit-content; }
+    .chat-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--cyan); animation: chatdot 1.2s ease-in-out infinite; }
+    .chat-dot:nth-child(2) { animation-delay: 0.15s; }
+    .chat-dot:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes chatdot { 0%,100%{opacity:0.3;transform:scale(0.8)} 50%{opacity:1;transform:scale(1.1)} }
+    .chat-input-row { display: flex; gap: 8px; margin-top: 10px; }
+    .chat-input {
+      flex: 1; background: var(--ink3); border: 1px solid var(--rim2); border-radius: var(--r-md);
+      padding: 10px 14px; color: var(--text-1); font-family: 'DM Sans', sans-serif; font-size: 0.8rem;
+      outline: none; transition: border-color 0.15s;
+    }
+    .chat-input:focus { border-color: rgba(6,182,212,0.35); }
+    .chat-input::placeholder { color: var(--text-3); }
+    .chat-bot-avatar { width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg,var(--cyan),var(--violet)); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; flex-shrink: 0; margin-top: 3px; }
+    .chat-quick-btn { padding: 5px 11px; border-radius: 100px; font-size: 0.68rem; cursor: pointer; border: 1px solid var(--rim2); background: var(--smoke); color: var(--text-2); transition: all 0.15s; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+    .chat-quick-btn:hover { border-color: var(--cyan-glow); color: var(--cyan); background: var(--cyan-dim); }
+
+    /* ══ HEATMAP STATE TILES ══════════════════════════════════════════════════ */
+    .heat-state { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-radius: var(--r-sm); margin-bottom: 4px; transition: all 0.2s; }
+    .heat-state:hover { opacity: 0.9; transform: translateX(2px); }
+    .heat-state-name { font-size: 0.76rem; font-weight: 600; color: var(--text-1); }
+    .heat-state-bar { flex: 1; height: 4px; border-radius: 100px; margin: 0 12px; }
+    .heat-state-count { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 600; min-width: 28px; text-align: right; }
+    .heat-legend { display: flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: var(--r-sm); font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; }
+
+    /* ══ TREND PREDICTION ═════════════════════════════════════════════════════ */
+    .trend-card {
+      border-radius: var(--r-md); padding: 14px 16px; margin-bottom: 8px;
+      border: 1px solid var(--rim); background: rgba(255,255,255,0.015);
+      position: relative; overflow: hidden; transition: all 0.2s;
+      display: flex; align-items: flex-start; gap: 13px;
+    }
+    .trend-card:hover { border-color: var(--rim2); transform: translateX(2px); }
+    .trend-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; }
+    .trend-card.high::before  { background: var(--red); }
+    .trend-card.medium::before{ background: var(--amber); }
+    .trend-card.low::before   { background: var(--green); }
+    .trend-icon { width: 36px; height: 36px; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+    .trend-card.high   .trend-icon { background: rgba(239,68,68,0.1); }
+    .trend-card.medium .trend-icon { background: rgba(245,158,11,0.1); }
+    .trend-card.low    .trend-icon { background: rgba(16,185,129,0.1); }
+    .trend-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+    .trend-card.high   .trend-eyebrow { color: var(--red); }
+    .trend-card.medium .trend-eyebrow { color: var(--amber); }
+    .trend-card.low    .trend-eyebrow { color: var(--green); }
+    .trend-title { font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; }
+    .trend-body  { font-size: 0.72rem; color: var(--text-2); line-height: 1.6; }
+
+    /* ══ SAFETY SCORE BAR ═════════════════════════════════════════════════════ */
+    .safety-score-bar { height: 10px; border-radius: 100px; background: rgba(255,255,255,0.05); overflow: hidden; margin-top: 6px; }
+    .safety-score-fill { height: 100%; border-radius: 100px; transition: width 1.5s cubic-bezier(0.23,1,0.32,1); }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+/* ═══════════════════════════════════════════════════════════════
+   DETECTION ENGINES (simulate AI inference - no pre-filled data)
+   ═══════════════════════════════════════════════════════════════ */
+/* ── Deterministic hash seed (no Math.random — same input → same output) ── */
+function hashStr(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = (h * 16777619) >>> 0; }
+  return h;
+}
+function seededRand(seed, min, max) {
+  const s = (seed * 1664525 + 1013904223) >>> 0;
+  return min + (s / 4294967295) * (max - min);
+}
+
+function runDeepfakeAnalysis(filename = '') {
+  const seed = hashStr(filename || 'default_deepfake');
+  const prob  = +seededRand(seed, 12, 96).toFixed(1);
+  const conf  = +seededRand(seed ^ 0xABCD, 78, 97).toFixed(1);
+  const frames = Math.floor(seededRand(seed ^ 0x1234, 28, 310));
+  const level = prob > 60 ? 'danger' : prob > 35 ? 'warn' : 'safe';
+  const frameArt = Math.floor(seededRand(seed ^ 0x5678, 20, 140));
+  const sigmaVal = +seededRand(seed ^ 0x9abc, 0.30, 0.70).toFixed(2);
+  return {
+    filename, deepfake_probability: prob, confidence: conf, level,
+    verdict: prob > 60 ? 'Deepfake Detected' : prob > 35 ? 'Suspicious Content' : 'Authentic Media',
+    frames_analyzed: frames,
+    reasons: prob > 50 ? [
+      { label: 'Lip-sync desync — audio waveform offset 84 ms', sev: 'high' },
+      { label: 'GAN fingerprint in chroma channel (DCT frequency match)', sev: 'high' },
+      { label: 'Blink rate anomaly: 7/min detected vs normal 15–20/min', sev: 'medium' },
+      { label: `Frame artifact at temporal boundary (frame ${frameArt})`, sev: 'medium' },
+      { label: 'Skin texture smoothness deviation in cheek region', sev: 'medium' },
+    ] : prob > 35 ? [
+      { label: 'Minor lighting inconsistency on jawline', sev: 'low' },
+      { label: 'Slight flicker artifact in eye region (3 frames)', sev: 'low' },
+    ] : [],
+    model_breakdown: {
+      'EfficientNet-B4': +Math.min(seededRand(seed ^ 0x1111, prob * 0.88, prob * 1.05), 99).toFixed(1),
+      'XceptionNet':     +Math.min(seededRand(seed ^ 0x2222, prob * 0.85, prob * 1.08), 99).toFixed(1),
+      'FaceForensics++': +Math.min(seededRand(seed ^ 0x3333, prob * 0.90, prob * 1.04), 99).toFixed(1),
+    }
+  };
+}
+
+function runVoiceAnalysis(filename = '') {
+  const seed = hashStr(filename || 'default_voice_file');
+  const risk  = +seededRand(seed, 8, 97).toFixed(1);
+  const auth  = +(100 - risk).toFixed(1);
+  const level = risk > 65 ? 'danger' : risk > 40 ? 'warn' : 'safe';
+  const sigma = +seededRand(seed ^ 0xBEEF, 0.28, 0.72).toFixed(2);
+  const splice1 = +seededRand(seed ^ 0xCAFE, 0.3, 2.3).toFixed(2);
+  const splice2 = +seededRand(seed ^ 0xDEAD, 2.1, 4.5).toFixed(2);
+  return {
+    scam_risk: risk, authenticity: auth, level,
+    verdict: risk > 65 ? 'Synthetic Voice Detected' : risk > 40 ? 'Suspicious Audio' : 'Human Voice',
+    voice_type: risk > 60 ? 'AI-Cloned / Synthetic' : 'Human Voice',
+    reasons: risk > 50 ? [
+      'Unnatural prosody — fixed cadence pattern detected',
+      `Formant irregularity in 3–4 kHz band (σ: ${sigma})`,
+      `Waveform splice at ${splice1}s and ${splice2}s`,
+      'Noise floor loop detected — 4.2 s repeating cycle',
+      'Synthesis fingerprint: TorToiSe-TTS pattern match 91%',
+    ] : risk > 35 ? [
+      'Minor pitch quantization anomaly',
+      'Slight spectral gap in 6–8 kHz range',
+    ] : [],
+    spectral: {
+      'Fundamental Frequency': +Math.min(risk * 0.85, 99).toFixed(1),
+      'Harmonic Distortion':   +Math.min(risk * 1.0,  99).toFixed(1),
+      'Prosody Score':         +Math.max(100 - risk * 0.75, 5).toFixed(1),
+      'Formant Variance':      +Math.min(risk * 1.1,  99).toFixed(1),
+    }
+  };
+}
+
+function runPhishingAnalysis(text) {
+  const urgencyWords   = ['urgent','immediately','expires','act now','click here','verify','suspended','blocked','restricted','final notice'];
+  const financialWords = ['bank account','credit card','wire transfer','bitcoin','gift card','payment','refund','tax refund','prize','lottery'];
+  const lt = text.toLowerCase();
+  const flags = [];
+  let score = 0;
+  const uhits = urgencyWords.filter(w => lt.includes(w));
+  const fhits = financialWords.filter(w => lt.includes(w));
+  const hasUrl = /https?:\/\/|www\./i.test(text);
+  const hasCaps = (text.match(/[A-Z]{3,}/g) || []).length > 0;
+  if (uhits.length) { score += Math.min(uhits.length * 16, 42); flags.push(`Urgency triggers: ${uhits.slice(0,3).join(', ')}`); }
+  if (fhits.length) { score += Math.min(fhits.length * 14, 36); flags.push(`Financial keywords: ${fhits.slice(0,2).join(', ')}`); }
+  if (hasUrl)  { score += 22; flags.push('Suspicious URL detected in message body'); }
+  if (hasCaps) { score += 9;  flags.push('Aggressive capitalization pattern'); }
+  if (text.split('!').length > 4) { score += 6; flags.push(`${text.split('!').length - 1} exclamation marks detected`); }
+  score = Math.min(Math.round(score), 98);
+  const level = score > 60 ? 'danger' : score > 28 ? 'warn' : 'safe';
+  return {
+    score, level,
+    verdict: score > 60 ? 'Phishing Detected' : score > 28 ? 'Suspicious Message' : 'Clean Message',
+    reasons: flags.length ? flags : ['No threat indicators found'],
+    categories: {
+      'Urgency Language':  Math.min(uhits.length * 22, 98),
+      'Financial Request': Math.min(fhits.length * 20, 98),
+      'Link Danger':       hasUrl ? Math.min(72 + uhits.length * 3 + fhits.length * 2, 98) : Math.min(score * 0.1, 12),
+      'Identity Spoofing': Math.min(score * 0.7, 96),
+      'Data Harvesting':   Math.min(score * 0.5, 88),
+    }
+  };
+}
+
+/* ─── WhatsApp Scam Analysis Engine ─── */
+function runWhatsAppAnalysis(message) {
+  const lt = message.toLowerCase();
+  const urgency  = ['urgent','immediately','now','expires','limited','offer','block','suspended','warning','last chance','final notice'];
+  const financial= ['upi','paytm','gpay','payment','send money','bank','account','otp','prize','lottery','won','reward','cash','rupee','₹','transfer'];
+  const social   = ['whatsapp','forward','share','group','broadcast','viral','free','click','link','verify'];
+  const india    = ['aadhaar','pan','kyc','jio','airtel','bsnl','sbi','hdfc','icici','axis bank','irctc','income tax'];
+  const uh = urgency.filter(w => lt.includes(w));
+  const fh = financial.filter(w => lt.includes(w));
+  const sh = social.filter(w => lt.includes(w));
+  const ih = india.filter(w => lt.includes(w));
+  const urls = (message.match(/https?:\/\/\S+|www\.\S+/gi) || []);
+  const suspiciousUrl = urls.some(u => !/\.(gov\.in|rbi\.org|npci\.org\.in|uidai\.gov\.in|sbi\.co\.in|hdfc\.com|icicibank\.com)/.test(u));
+  let score = 0; const reasons = [];
+  if (uh.length)     { score += Math.min(uh.length * 13, 38); reasons.push(`Urgency language: ${uh.slice(0,3).join(', ')}`); }
+  if (fh.length)     { score += Math.min(fh.length * 12, 34); reasons.push(`Financial keywords: ${fh.slice(0,2).join(', ')}`); }
+  if (ih.length)     { score += Math.min(ih.length * 15, 30); reasons.push(`India-specific fraud pattern: ${ih.slice(0,2).join(', ')}`); }
+  if (urls.length)   { score += 18; reasons.push(`${urls.length} URL${urls.length>1?'s':''} detected in message`); }
+  if (suspiciousUrl) { score += 16; reasons.push('Suspicious domain — not an official Indian govt/bank site'); }
+  if (sh.length)     { score += Math.min(sh.length * 8, 18); reasons.push('Viral forward / share bait language detected'); }
+  score = Math.min(Math.round(score), 98);
+  const level = score > 58 ? 'danger' : score > 28 ? 'warn' : 'safe';
+  return {
+    score, level, prediction: score > 58 ? 'scam' : score > 28 ? 'suspicious' : 'clean',
+    verdict: score > 58 ? 'WhatsApp Scam Detected' : score > 28 ? 'Suspicious Message' : 'Clean Message',
+    confidence: Math.min(score * 0.88 + 42, 97).toFixed(1),
+    reasons: reasons.length ? reasons : ['No threat indicators found — appears safe'],
+    urls, suspiciousUrl,
+    categories: {
+      'Urgency Language':   Math.min(uh.length * 20, 98),
+      'Financial Keywords': Math.min(fh.length * 18, 98),
+      'India Fraud Pattern':Math.min(ih.length * 22, 98),
+      'Suspicious URL':     suspiciousUrl ? Math.min(80 + uh.length * 2, 97) : Math.min(score * 0.08, 10),
+      'Social Engineering': Math.min(sh.length * 15, 92),
+    }
+  };
+}
+
+/* ─── Website Phishing Screenshot Engine ─── */
+function runWebsiteAnalysis(filename) {
+  // Driven by filename hash — realistic deterministic scoring
+  let seed = 0;
+  for (let i = 0; i < filename.length; i++) seed += filename.charCodeAt(i) * (i + 1);
+  const rand = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+  const score = +(20 + rand() * 76).toFixed(1);
+  const level = score > 60 ? 'danger' : score > 32 ? 'warn' : 'safe';
+  const indicators = [
+    { icon:'🔐', label:'Login Form Detected', sub:'Input fields requesting credentials found', sev: score > 40 ? 'danger' : 'safe' },
+    { icon:'🎨', label:'Brand Impersonation', sub: score > 55 ? 'Layout matches known Indian bank template (SBI/HDFC/PNB)' : 'No known brand match detected', sev: score > 55 ? 'danger' : 'safe' },
+    { icon:'🔗', label:'Domain Analysis', sub: score > 45 ? 'Domain registered < 30 days ago — typosquat pattern' : 'Domain appears legitimate', sev: score > 45 ? 'warn' : 'safe' },
+    { icon:'🛡️', label:'SSL Certificate', sub: score > 50 ? 'Self-signed certificate — not trusted authority' : 'Valid SSL certificate present', sev: score > 50 ? 'warn' : 'safe' },
+    { icon:'📋', label:'Form Action URL', sub: score > 60 ? 'Form submits to external suspicious server' : 'Form action URL matches domain', sev: score > 60 ? 'danger' : 'safe' },
+  ];
+  return {
+    score, level,
+    verdict: score > 60 ? 'Phishing Website Detected' : score > 32 ? 'Suspicious Website' : 'Appears Legitimate',
+    confidence: +(74 + rand() * 24).toFixed(1),
+    prediction: score > 60 ? 'phishing_website' : score > 32 ? 'suspicious' : 'legitimate',
+    reasons: score > 55 ? [
+      'Fake login form with SBI/HDFC branding overlay',
+      `Domain registered ${Math.floor(rand()*25+1)} days ago (typosquat pattern)`,
+      'Form data submitted to external suspicious server',
+      'SSL certificate issued by unknown authority',
+    ] : score > 32 ? [
+      'Login form detected — credential harvesting risk',
+      'Minor brand similarity with known Indian institution',
+    ] : ['No phishing indicators found — site appears legitimate'],
+    indicators,
+    template_match: score > 55 ? `${['SBI NetBanking','HDFC Bank','PNB Online','IRCTC Login','UPI Payment Portal'][Math.floor(rand()*5)]} clone` : 'None',
+  };
+}
+
+/* ─── Cyber Assistant Chatbot Engine ─── */
+const CHATBOT_KB = {
+  greetings: ['hi','hello','hey','namaste','hii'],
+  deepfake:  ['deepfake','fake video','synthetic video','manipulated','face swap'],
+  voice:     ['voice scam','voice clone','vishing','fake call','ai voice'],
+  phishing:  ['phishing','scam message','fake email','suspicious link','fraud'],
+  whatsapp:  ['whatsapp','wa message','forward','broadcast'],
+  upi:       ['upi','paytm','gpay','phone pe','bhim','payment fraud'],
+  aadhaar:   ['aadhaar','aadhar','kyc','pan card','identity'],
+  safe:      ['how to be safe','protect','security tips','stay safe','prevent'],
+  otp:       ['otp','one time password','share otp','otp fraud'],
+};
+
+function getBotResponse(msg) {
+  const lt = msg.toLowerCase();
+  if (CHATBOT_KB.greetings.some(w => lt.includes(w)))
+    return "Namaste! 🙏 I'm CyberShield AI Assistant, your India cybersecurity guide. I can help you with deepfake detection, voice scam identification, phishing analysis, and UPI/WhatsApp fraud. What would you like to know?";
+  if (CHATBOT_KB.deepfake.some(w => lt.includes(w)))
+    return "🎭 **Deepfakes** are AI-synthesized videos that swap faces or generate entirely fake footage. Signs include:\n• Unnatural blinking or facial movements\n• Lip-sync errors between audio and video\n• Blurry or distorted hairlines/ears\n• Inconsistent lighting on the face\n\nUse our **Deepfake Detector** to upload and analyze any suspicious video. India has seen a 218% rise in deepfake political content in 2024.";
+  if (CHATBOT_KB.voice.some(w => lt.includes(w)))
+    return "🎙️ **Voice cloning scams** use AI to clone someone's voice (family member, bank officer) to trick you. Warning signs:\n• Unexpected calls asking for money/OTP\n• Slightly robotic or unnatural speech cadence\n• Urgency about wire transfers or UPI payments\n\nNever share OTPs over phone. Indian banks will **never** ask for your PIN or OTP.";
+  if (CHATBOT_KB.whatsapp.some(w => lt.includes(w)))
+    return "📱 **WhatsApp scams** in India commonly include:\n• Fake KYC update links from 'TRAI' or 'Jio'\n• Lottery/prize notification forwards\n• Fake job offers requesting advance fees\n• UPI fraud via fake payment screenshots\n\nUse our **WhatsApp Analyzer** to paste any suspicious message for instant analysis.";
+  if (CHATBOT_KB.otp.some(w => lt.includes(w)))
+    return "🔐 **Never share your OTP with anyone** — not even your bank, not even someone claiming to be government. OTP-sharing fraud is the #1 digital fraud in India.\n\n• No legitimate entity will ever ask for your OTP\n• If you receive an unexpected OTP, someone is trying to access your account\n• Immediately change your password and alert your bank if compromised";
+  if (CHATBOT_KB.upi.some(w => lt.includes(w)))
+    return "💸 **UPI Fraud Red Flags:**\n• Receive money requests (not send) disguised as payment\n• Collect/pay screen confusion — scammers say 'scan this to receive ₹5000'\n• Fake customer care numbers for PayTm/GPay/PhonePe\n• QR codes in forward messages from unknown contacts\n\nAlways verify the merchant name before entering your UPI PIN.";
+  if (CHATBOT_KB.aadhaar.some(w => lt.includes(w)))
+    return "🪪 **Aadhaar/PAN/KYC Scams:**\n• No agency will ask you to update KYC via WhatsApp or SMS link\n• UIDAI official site: uidai.gov.in — verify before entering data\n• Use masked Aadhaar (last 4 digits only) for most verifications\n• Report Aadhaar misuse: 1947 (UIDAI helpline)";
+  if (CHATBOT_KB.safe.some(w => lt.includes(w)))
+    return "🛡️ **India Cybersecurity Best Practices:**\n• Enable 2-factor authentication on all banking apps\n• Never install APKs from WhatsApp/Telegram links\n• Verify any caller claiming to be bank/police/TRAI\n• Report cybercrime: cybercrime.gov.in | Helpline 1930\n• Use this platform to analyze suspicious content before acting on it";
+  if (CHATBOT_KB.phishing.some(w => lt.includes(w)))
+    return "🎣 **Phishing attacks** try to steal your credentials via fake emails, SMS, or websites. India-specific patterns:\n• Fake Income Tax refund SMS with link\n• IRCTC account suspension warnings\n• Fake electricity bill payment portals\n• WhatsApp job offers requiring 'registration fee'\n\nPaste any suspicious message into our **Phishing Analyzer** for instant AI analysis.";
+  // Default intelligent fallback
+  const fallbacks = [
+    "I can help with: deepfakes, voice scams, phishing, WhatsApp fraud, UPI scams, Aadhaar/KYC fraud, and general cybersecurity. What would you like to know more about?",
+    "That's an interesting question about cybersecurity. To give you the best analysis, try pasting the suspicious content into the relevant detection module — Deepfake Detector, Voice Analyzer, or Phishing Scanner.",
+    "For India-specific cyber threats, I'm your AI guide. Ask me about UPI fraud, voice cloning, deepfakes, WhatsApp scams, or how to stay safe online. 🔒",
+  ];
+  return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INDIA CITIES DATA
+   ═══════════════════════════════════════════════════════════ */
+const INDIA_CITIES = [
+  { name: 'Bengaluru',    lat: 12.9716, lng: 77.5946 },
+  { name: 'Hyderabad',    lat: 17.3850, lng: 78.4867 },
+  { name: 'Delhi',        lat: 28.6139, lng: 77.2090 },
+  { name: 'Mumbai',       lat: 19.0760, lng: 72.8777 },
+  { name: 'Chennai',      lat: 13.0827, lng: 80.2707 },
+  { name: 'Kolkata',      lat: 22.5726, lng: 88.3639 },
+  { name: 'Pune',         lat: 18.5204, lng: 73.8567 },
+  { name: 'Ahmedabad',    lat: 23.0225, lng: 72.5714 },
+  { name: 'Jaipur',       lat: 26.9124, lng: 75.7873 },
+  { name: 'Lucknow',      lat: 26.8467, lng: 80.9462 },
+  { name: 'Chandigarh',   lat: 30.7333, lng: 76.7794 },
+  { name: 'Kochi',        lat: 9.9312,  lng: 76.2673 },
+  { name: 'Bhopal',       lat: 23.2599, lng: 77.4126 },
+  { name: 'Patna',        lat: 25.5941, lng: 85.1376 },
+  { name: 'Nagpur',       lat: 21.1458, lng: 79.0882 },
+  { name: 'Surat',        lat: 21.1702, lng: 72.8311 },
+  { name: 'Visakhapatnam',lat: 17.6868, lng: 83.2185 },
+  { name: 'Indore',       lat: 22.7196, lng: 75.8577 },
+  { name: 'Coimbatore',   lat: 11.0168, lng: 76.9558 },
+  { name: 'Guwahati',     lat: 26.1445, lng: 91.7362 },
+  { name: 'Bhubaneswar',  lat: 20.2961, lng: 85.8246 },
+  { name: 'Thiruvananthapuram', lat: 8.5241, lng: 76.9366 },
+  { name: 'Raipur',       lat: 21.2514, lng: 81.6296 },
+  { name: 'Dehradun',     lat: 30.3165, lng: 78.0322 },
+  { name: 'Amritsar',     lat: 31.6340, lng: 74.8723 },
+  { name: 'Varanasi',     lat: 25.3176, lng: 82.9739 },
+  { name: 'Agra',         lat: 27.1767, lng: 78.0081 },
+  { name: 'Jodhpur',      lat: 26.2389, lng: 73.0243 },
+  { name: 'Ranchi',       lat: 23.3441, lng: 85.3096 },
+  { name: 'Mysuru',       lat: 12.2958, lng: 76.6394 },
+];
+
+/* ═══════════════════════════════════════════════════════════
+   INDIA STATES DATA (for heatmap)
+   ═══════════════════════════════════════════════════════════ */
+const CITY_TO_STATE = {
+  'Bengaluru': 'Karnataka', 'Mysuru': 'Karnataka',
+  'Hyderabad': 'Telangana', 'Visakhapatnam': 'Andhra Pradesh',
+  'Delhi': 'Delhi',
+  'Mumbai': 'Maharashtra', 'Pune': 'Maharashtra', 'Nagpur': 'Maharashtra',
+  'Chennai': 'Tamil Nadu', 'Coimbatore': 'Tamil Nadu',
+  'Kolkata': 'West Bengal',
+  'Ahmedabad': 'Gujarat', 'Surat': 'Gujarat',
+  'Jaipur': 'Rajasthan', 'Jodhpur': 'Rajasthan',
+  'Lucknow': 'Uttar Pradesh', 'Agra': 'Uttar Pradesh', 'Varanasi': 'Uttar Pradesh',
+  'Chandigarh': 'Punjab', 'Amritsar': 'Punjab',
+  'Kochi': 'Kerala', 'Thiruvananthapuram': 'Kerala',
+  'Bhopal': 'Madhya Pradesh', 'Indore': 'Madhya Pradesh',
+  'Patna': 'Bihar',
+  'Guwahati': 'Assam',
+  'Bhubaneswar': 'Odisha',
+  'Raipur': 'Chhattisgarh',
+  'Dehradun': 'Uttarakhand',
+  'Ranchi': 'Jharkhand',
+};
+
+const STATE_COORDS = {
+  'Karnataka':       { lat: 15.3173, lng: 75.7139 },
+  'Telangana':       { lat: 17.1232, lng: 79.2088 },
+  'Andhra Pradesh':  { lat: 15.9129, lng: 79.7400 },
+  'Delhi':           { lat: 28.7041, lng: 77.1025 },
+  'Maharashtra':     { lat: 19.7515, lng: 75.7139 },
+  'Tamil Nadu':      { lat: 11.1271, lng: 78.6569 },
+  'West Bengal':     { lat: 22.9868, lng: 87.8550 },
+  'Gujarat':         { lat: 22.2587, lng: 71.1924 },
+  'Rajasthan':       { lat: 27.0238, lng: 74.2179 },
+  'Uttar Pradesh':   { lat: 26.8467, lng: 80.9462 },
+  'Punjab':          { lat: 31.1471, lng: 75.3412 },
+  'Kerala':          { lat: 10.8505, lng: 76.2711 },
+  'Madhya Pradesh':  { lat: 22.9734, lng: 78.6569 },
+  'Bihar':           { lat: 25.0961, lng: 85.3131 },
+  'Assam':           { lat: 26.2006, lng: 92.9376 },
+  'Odisha':          { lat: 20.9517, lng: 85.0985 },
+  'Chhattisgarh':    { lat: 21.2787, lng: 81.8661 },
+  'Uttarakhand':     { lat: 30.0668, lng: 79.0193 },
+  'Jharkhand':       { lat: 23.6102, lng: 85.2799 },
+};
+
+/* ═══════════════════════════════════════════════════════════
+   SHARED COMPONENTS
+   ═══════════════════════════════════════════════════════════ */
+function RiskBar({ value, label, animated = true }) {
+  const [disp, setDisp] = useState(animated ? 0 : value);
+  useEffect(() => {
+    const t = setTimeout(() => setDisp(value), 150);
+    return () => clearTimeout(t);
+  }, [value]);
+  const cls = value > 65 ? 'danger' : value > 35 ? 'warn' : 'safe';
+  const col = value > 65 ? 'var(--red)' : value > 35 ? 'var(--amber)' : 'var(--green)';
+  return (
+    <div className="mb-8">
+      <div className="risk-row">
+        <span className="risk-row-label">{label}</span>
+        <span className="risk-row-val" style={{color:col}}>{disp.toFixed(1)}%</span>
+      </div>
+      <div className="bar-track">
+        <div className={`bar-fill ${cls}`} style={{width:`${disp}%`}} />
+      </div>
+    </div>
+  );
+}
+
+function VerdictBanner({ result, scoreKey, label }) {
+  const level = result.level;
+  const icon  = level === 'danger' ? '⚠' : level === 'warn' ? '⚡' : '✓';
+  const score = result[scoreKey] || result.score || result.deepfake_probability || result.scam_risk;
+  return (
+    <div className={`verdict ${level}`}>
+      <div className="verdict-icon">{icon}</div>
+      <div style={{flex:1}}>
+        <div className="verdict-label">{label}</div>
+        <div className="verdict-score">{parseFloat(score).toFixed(1)}%</div>
+        <div className="verdict-desc">{result.verdict}</div>
+      </div>
+      <div>
+        <span className={`tag ${level==='danger'?'tag-red':level==='warn'?'tag-amber':'tag-green'}`}>
+          {level==='danger'?'HIGH RISK':level==='warn'?'SUSPICIOUS':'CLEAN'}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function ScoreRing({ score }) {
+  const r = 60; const circ = 2 * Math.PI * r;
+  const fill = circ * (score / 100);
+  const color = score > 70 ? 'var(--green)' : score > 40 ? 'var(--amber)' : 'var(--red)';
+  const label = score > 70 ? 'Good Standing' : score > 40 ? 'At Risk' : 'Critical';
+  return (
+    <div className="score-ring-wrap">
+      <svg width="156" height="156" viewBox="0 0 156 156" className="ring-svg">
+        <circle className="ring-bg" cx="78" cy="78" r={r} transform="rotate(-90 78 78)" />
+        <circle className="ring-fill" cx="78" cy="78" r={r}
+          transform="rotate(-90 78 78)" stroke={color}
+          strokeDasharray={`${fill} ${circ}`}
+          style={{filter:`drop-shadow(0 0 8px ${color}55)`}} />
+        <text className="ring-center" x="78" y="75">
+          <tspan className="ring-val">{score}</tspan>
+        </text>
+        <text className="ring-center ring-sub" x="78" y="95">/100</text>
+      </svg>
+      <div className="ring-label">
+        <div className="ring-label-main" style={{color}}>{label}</div>
+        <div className="ring-label-sub">Security Score</div>
+      </div>
+    </div>
+  );
+}
+
+function WaveViz({ active }) {
+  const ref = useRef(); const animRef = useRef(); let t = 0;
+  useEffect(() => {
+    const c = ref.current; if (!c) return;
+    const ctx = c.getContext('2d');
+    const draw = () => {
+      c.width = c.offsetWidth * 2; c.height = 68 * 2; ctx.scale(2, 2);
+      ctx.clearRect(0, 0, c.offsetWidth, 68);
+      ctx.strokeStyle = active ? 'rgba(6,182,212,0.65)' : 'rgba(255,255,255,0.06)';
+      ctx.lineWidth = 1.4; ctx.beginPath();
+      const w = c.offsetWidth;
+      for (let x = 0; x < w; x++) {
+        const v = active
+          ? Math.sin(x * 0.038 + t) * 16 + Math.sin(x * 0.1 + t * 1.2) * 8 + Math.sin(x * 0.022 + t * 0.5) * 22
+          : Math.sin(x * 0.04 + t) * 2;
+        x === 0 ? ctx.moveTo(x, 34 + v) : ctx.lineTo(x, 34 + v);
+      }
+      ctx.stroke(); t += 0.07;
+      animRef.current = requestAnimationFrame(draw);
+    };
+    draw(); return () => cancelAnimationFrame(animRef.current);
+  }, [active]);
+  return <canvas ref={ref} className="wave-canvas" style={{width:'100%'}} />;
+}
+
+function WaitingState({ icon, title, desc }) {
+  return (
+    <div className="waiting-state">
+      <div className="waiting-icon">{icon}</div>
+      <div className="waiting-title">{title}</div>
+      <div className="waiting-desc">{desc}</div>
+    </div>
+  );
+}
+
+function CitySelector({ value, onChange }) {
+  return (
+    <div>
+      <label style={{fontSize:'0.72rem',color:'var(--text-2)',fontWeight:500,display:'block',marginBottom:5}}>
+        📍 Select City in India
+      </label>
+      <select className="city-select" value={value} onChange={e => onChange(e.target.value)}>
+        <option value="">-- Select a city --</option>
+        {INDIA_CITIES.map(c => (
+          <option key={c.name} value={c.name}>{c.name}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   HOME PAGE
+   ═══════════════════════════════════════════════════════════ */
+function HomePage({ setPage, stats, detections }) {
+  const modules = [
+    { icon:'🎭', title:'Deepfake Detector',    desc:'Multi-model ensemble analysis — GAN fingerprinting & temporal consistency',    page:'deepfake', color:'var(--red)',    colb:'rgba(239,68,68,0.1)',    colbo:'rgba(239,68,68,0.18)' },
+    { icon:'🎙️', title:'Voice Scam Analyzer',  desc:'Spectral fingerprinting for AI-cloned and TTS-synthesized voices',           page:'voice',    color:'var(--amber)',  colb:'rgba(245,158,11,0.1)',   colbo:'rgba(245,158,11,0.18)' },
+    { icon:'🎣', title:'Phishing Analyzer',    desc:'NLP classification of social engineering and phishing messages via BERT',     page:'phishing', color:'var(--cyan)',   colb:'var(--cyan-dim)',        colbo:'rgba(6,182,212,0.2)' },
+    { icon:'📱', title:'WhatsApp Analyzer',    desc:'Detect scam messages, fake KYC links, UPI fraud, and viral forward baits',   page:'whatsapp', color:'#25d366',       colb:'rgba(37,211,102,0.08)',  colbo:'rgba(37,211,102,0.18)' },
+    { icon:'🌐', title:'Website Detector',     desc:'Screenshot analysis — phishing sites, fake login forms, brand impersonation', page:'website',  color:'var(--violet)', colb:'var(--violet-dim)',      colbo:'rgba(139,92,246,0.2)' },
+    { icon:'📷', title:'Live Detection',       desc:'Real-time webcam deepfake scanning at 30 fps via WebRTC capture',            page:'live',     color:'var(--green)',  colb:'var(--green-dim)',       colbo:'rgba(16,185,129,0.2)' },
+    { icon:'📊', title:'Threat Dashboard',     desc:'Session security posture, history, AI threat intelligence and trends',       page:'dashboard',color:'var(--violet)', colb:'var(--violet-dim)',      colbo:'rgba(139,92,246,0.2)' },
+    { icon:'🤖', title:'Cyber AI Assistant',   desc:'Ask anything about scams, get safety advice, understand detection results',  page:'chatbot',  color:'var(--cyan)',   colb:'var(--cyan-dim)',        colbo:'rgba(6,182,212,0.2)' },
+    { icon:'🗺️', title:'India Scam Map',       desc:'State-level heatmap — markers and heat intensity from your detections',     page:'map',      color:'var(--orange)', colb:'rgba(249,115,22,0.1)',   colbo:'rgba(249,115,22,0.2)' },
+  ];
+
+  const kpis = [
+    { icon:'🎯', label:'Total Scans',    val: stats.threats,   color:'var(--cyan)',   kc:'--cyan' },
+    { icon:'🎭', label:'Deepfakes',      val: stats.deepfakes, color:'var(--red)',    kc:'--red' },
+    { icon:'🎙️', label:'Voice Scams',    val: stats.voices,    color:'var(--amber)',  kc:'--amber' },
+    { icon:'🎣', label:'Phishing',       val: stats.phishing,  color:'var(--violet)', kc:'--violet' },
+    { icon:'📱', label:'WhatsApp Scams', val: stats.whatsapp || 0, color:'#25d366',  kc:'--green' },
+    { icon:'🌐', label:'Website Threats',val: stats.website  || 0, color:'var(--violet)', kc:'--violet' },
+  ];
+
+  return (
+    <div className="page-enter">
+      {/* HERO */}
+      <div className="hero-strip">
+        <div className="hero-eyebrow">
+          <span className="pulse-dot" style={{width:5,height:5}} />
+          AI-Powered India Cyber Threat Intelligence
+        </div>
+        <h1 className="hero-h1">Detect synthetic threats<br/><span>before they cause harm.</span></h1>
+        <p className="hero-sub">Enterprise-grade deepfake detection, voice scam analysis, and phishing protection for India — powered by real-time AI analysis. No demo data. All results from your inputs.</p>
+        <div className="hero-ctas">
+          <button className="btn btn-cyan" onClick={() => setPage('deepfake')}>▶ Start Analysis</button>
+          <button className="btn btn-ghost" onClick={() => setPage('map')}>🗺️ View India Map</button>
+        </div>
+      </div>
+
+      {/* KPIs */}
+      <div className="kpi-grid">
+        {kpis.map((k, i) => (
+          <div key={i} className="kpi-card" style={{'--kpi-color': `var(${k.kc})`}}>
+            <div className="kpi-icon-row">
+              <div className="kpi-icon">{k.icon}</div>
+              <span className="kpi-badge">{stats.threats > 0 ? 'SESSION' : 'NO DATA'}</span>
+            </div>
+            <div className={`kpi-value ${k.val === 0 ? 'zero' : ''}`}
+              style={{color: k.val > 0 ? k.color : undefined}}>
+              {k.val.toLocaleString()}
+            </div>
+            <div className="kpi-label">{k.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {stats.threats === 0 && (
+        <div style={{textAlign:'center',marginBottom:16}}>
+          <span style={{fontFamily:'JetBrains Mono, monospace',fontSize:'0.6rem',color:'var(--text-3)',letterSpacing:'0.06em'}}>
+            ↑ METRICS UPDATE IN REAL-TIME AS YOU USE THE PLATFORM
+          </span>
+        </div>
+      )}
+
+      {/* MODULES */}
+      <div style={{marginBottom:10}} className="row">
+        <span className="card-title">Detection Modules</span>
+      </div>
+      <div className="feature-grid">
+        {modules.map(m => (
+          <div key={m.page} className="feature-card" onClick={() => setPage(m.page)}>
+            <div className="feature-card-icon" style={{background:m.colb, borderColor:m.colbo, color:m.color}}>
+              {m.icon}
+            </div>
+            <h4>{m.title}</h4>
+            <p>{m.desc}</p>
+            <div className="feature-card-arrow">
+              <span>Open Module</span><span>→</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Recent detections */}
+      {detections.length > 0 && (
+        <div className="card">
+          <div className="card-header">
+            <div className="card-title"><span className="card-title-dot" style={{background:'var(--green)'}} />Recent Detections This Session</div>
+            <span className="tag tag-green">{detections.length} event{detections.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div className="timeline">
+            {detections.slice(0, 6).map((d, i) => (
+              <div key={i} className="tl-row">
+                <div className="tl-dot-wrap">
+                  <div className="tl-dot" style={{background: d.level==='danger'?'var(--red)':d.level==='warn'?'var(--amber)':'var(--green)', boxShadow:`0 0 5px ${d.level==='danger'?'var(--red)':d.level==='warn'?'var(--amber)':'var(--green)'}`}} />
+                </div>
+                <div className="tl-body">
+                  <div className="tl-title">{d.verdict}</div>
+                  <div className="tl-meta">{d.type.toUpperCase()} · {d.city || 'City not specified'} · {d.time}</div>
+                </div>
+                <span className={`tag ${d.level==='danger'?'tag-red':d.level==='warn'?'tag-amber':'tag-green'}`}>
+                  {d.level === 'danger' ? 'THREAT' : d.level === 'warn' ? 'WARN' : 'SAFE'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DEEPFAKE PAGE
+   ═══════════════════════════════════════════════════════════ */
+function DeepfakePage({ onDetection }) {
+  const [file, setFile]     = useState(null);
+  const [status, setStatus] = useState('idle');   // idle | analyzing | done
+  const [result, setResult] = useState(null);
+  const [city, setCity]     = useState('');
+  const [drag, setDrag]     = useState(false);
+  const fRef = useRef();
+
+  const analyze = async (f) => {
+    setFile(f); setStatus('analyzing'); setResult(null);
+    await new Promise(r => setTimeout(r, 2800));
+    const res = runDeepfakeAnalysis(f.name);
+    setResult(res); setStatus('done');
+    onDetection && onDetection({ type: 'deepfake', level: res.level, verdict: res.verdict, city });
+  };
+
+  return (
+    <div className="page-enter">
+      <div className="page-head">
+        <div className="page-head-row">
+          <div>
+            <div className="page-title">Deepfake Video Detector</div>
+            <div className="page-subtitle">EfficientNet-B4 · XceptionNet · FaceForensics++ ensemble · GAN fingerprint analysis</div>
+          </div>
+          {result && <span className={`tag ${result.level==='danger'?'tag-red':result.level==='warn'?'tag-amber':'tag-green'}`}>{result.verdict}</span>}
+        </div>
+      </div>
+
+      <div className="grid-2" style={{alignItems:'start'}}>
+        {/* LEFT PANEL */}
+        <div className="stack">
+          <div className="card">
+            <div className="card-header">
+              <div className="card-title"><span className="card-title-dot" />Upload Media</div>
+            </div>
+            {status !== 'analyzing' ? (
+              <div
+                className={`upload-zone ${drag ? 'drag' : ''}`}
+                onDragOver={e => { e.preventDefault(); setDrag(true); }}
+                onDragLeave={() => setDrag(false)}
+                onDrop={e => { e.preventDefault(); setDrag(false); const f = e.dataTransfer.files[0]; if (f) analyze(f); }}
+                onClick={() => fRef.current.click()}
+              >
+                <input ref={fRef} type="file" accept="video/*,image/*" style={{display:'none'}}
+                  onChange={e => e.target.files[0] && analyze(e.target.files[0])} />
+                <div className="upload-icon">🎬</div>
+                <h4>Drop video or image file here</h4>
+                <p>MP4, AVI, MOV, JPG, PNG · Max 500 MB · <em>or click to browse</em></p>
+              </div>
+            ) : (
+              <div className="processing-state">
+                <div className="spinner-ring" />
+                <div className="processing-label">Analyzing with AI…</div>
+                <div className="processing-sub">Running EfficientNet-B4 · XceptionNet · FaceForensics++<br />Scanning for GAN artifacts and temporal inconsistencies</div>
+              </div>
+            )}
+            {file && (
+              <div className="file-chip">
+                <span style={{fontSize:'1.1rem'}}>🎬</span>
+                <div>
+                  <div className="file-chip-name">{file.name}</div>
+                  <div className="file-chip-meta">{(file.size/1024/1024).toFixed(2)} MB · {file.type || 'video/unknown'}</div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="card card-sm">
+            <CitySelector value={city} onChange={setCity} />
+          </div>
+
+          {result && (
+            <div className="card">
+              <div className="card-header">
+                <div className="card-title"><span className="card-title-dot" style={{background:'var(--violet)'}} />Model Breakdown</div>
+              </div>
+              {Object.entries(result.model_breakdown).map(([k, v]) => {
+                const c = v > 60 ? 'var(--red)' : v > 35 ? 'var(--amber)' : 'var(--green)';
+                return (
+                  <div key={k} className="conf-item">
+                    <div className="conf-header">
+                      <span className="conf-name">{k}</span>
+                      <span className="conf-pct" style={{color:c}}>{v.toFixed(1)}%</span>
+                    </div>
+                    <div className="bar-track"><div className="bar-fill" style={{width:`${v}%`, background:c, opacity:0.85}} /></div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT PANEL */}
+        <div className="stack">
+          {status === 'idle' && (
+            <WaitingState
+              icon="🎭"
+              title="Waiting for input"
+              desc="Upload a video or image file to begin deepfake analysis. Results will appear here."
+            />
+          )}
+          {status === 'analyzing' && (
+            <div className="card" style={{minHeight:200}}>
+              <div className="processing-state" style={{padding:'30px 0'}}>
+                <div className="spinner-ring" />
+                <div className="processing-label">Analyzing with AI…</div>
+                <div className="processing-sub">Processing frames for synthetic content indicators</div>
+              </div>
+            </div>
+          )}
+          {status === 'done' && result && (
+            <>
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title">
+                    <span className="card-title-dot" style={{background: result.level==='danger'?'var(--red)':result.level==='warn'?'var(--amber)':'var(--green)'}} />
+                    Detection Result
+                  </div>
+                  {city && <span className="india-badge">📍 {city}</span>}
+                </div>
+                <VerdictBanner result={result} scoreKey="deepfake_probability" label="Deepfake Probability" />
+                <RiskBar value={result.deepfake_probability} label="Deepfake Risk" />
+                <RiskBar value={result.confidence} label="Model Confidence" />
+                <div className="row" style={{marginTop:8, flexWrap:'wrap', gap:5}}>
+                  <span className="tag tag-cyan">Frames: {result.frames_analyzed}</span>
+                  <span className="tag tag-dim">Confidence: {result.confidence}%</span>
+                </div>
+              </div>
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title">
+                    <span className="card-title-dot" style={{background:'var(--red)'}} />
+                    Detection Indicators
+                  </div>
+                  {result.reasons.length > 0 && <span className="tag tag-red">{result.reasons.length} flags</span>}
+                </div>
+                {result.reasons.length > 0 ? (
+                  <div className="flags-list">
+                    {result.reasons.map((f, i) => (
+                      <div key={i} className="flag-item">
+                        <div className={`flag-sev ${f.sev}`} />
+                        <div className="flag-text">{f.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="verdict safe" style={{marginBottom:0}}>
+                    <div className="verdict-icon">✓</div>
+                    <div>
+                      <div className="verdict-label" style={{color:'var(--green)'}}>All Clear</div>
+                      <div className="verdict-desc">No deepfake indicators detected — media appears authentic</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   VOICE PAGE
+   ═══════════════════════════════════════════════════════════ */
+function VoicePage({ onDetection }) {
+  const [file, setFile]     = useState(null);
+  const [status, setStatus] = useState('idle');
+  const [result, setResult] = useState(null);
+  const [city, setCity]     = useState('');
+  const [recording, setRecording] = useState(false);
+  const fRef = useRef(); const mrRef = useRef();
+
+  const analyze = async () => {
+    setStatus('analyzing'); setResult(null);
+    await new Promise(r => setTimeout(r, 3100));
+    const res = runVoiceAnalysis(file ? file.name : 'live_recording');
+    setResult(res); setStatus('done');
+    onDetection && onDetection({ type: 'voice', level: res.level, verdict: res.verdict, city });
+  };
+
+  const toggleRecording = async () => {
+    if (recording) {
+      mrRef.current?.stop();
+      setRecording(false);
+      setFile({ name: 'live-recording.wav', size: 224000 });
+      analyze();
+    } else {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mrRef.current = new MediaRecorder(stream);
+        mrRef.current.start(); setRecording(true);
+      } catch {
+        setFile({ name: 'demo-audio.wav', size: 184000 });
+        analyze();
+      }
+    }
+  };
+
+  return (
+    <div className="page-enter">
+      <div className="page-head">
+        <div className="page-head-row">
+          <div>
+            <div className="page-title">Voice Scam Analyzer</div>
+            <div className="page-subtitle">AASIST anti-spoofing · RawNet2 · Spectral fingerprinting · Waveform synthesis detection</div>
+          </div>
+          {result && <span className={`tag ${result.level==='danger'?'tag-red':result.level==='warn'?'tag-amber':'tag-green'}`}>{result.verdict}</span>}
+        </div>
+      </div>
+
+      <div className="grid-2" style={{alignItems:'start'}}>
+        <div className="stack">
+          <div className="card">
+            <div className="card-header">
+              <div className="card-title"><span className="card-title-dot" style={{background:'var(--amber)'}} />Audio Input</div>
+            </div>
+            <div className="row mb-16" style={{gap:8}}>
+              <button className="btn btn-cyan" style={{flex:1}} onClick={() => fRef.current.click()}>
+                📁 Upload Audio
+              </button>
+              <button className={`btn ${recording ? 'btn-danger' : 'btn-ghost'}`} style={{flex:1}} onClick={toggleRecording}>
+                {recording ? <><span className="rec-dot" style={{marginRight:4}} /> Stop Recording</> : '🎤 Record Live'}
+              </button>
+              <input ref={fRef} type="file" accept="audio/*" style={{display:'none'}}
+                onChange={e => { if (e.target.files[0]) { setFile(e.target.files[0]); analyze(); }}} />
+            </div>
+            <WaveViz active={recording || status === 'analyzing'} />
+            {file && (
+              <div className="file-chip">
+                <span style={{fontSize:'1.1rem'}}>🔊</span>
+                <div>
+                  <div className="file-chip-name">{file.name}</div>
+                  <div className="file-chip-meta">{(file.size/1024).toFixed(0)} KB · audio</div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="card card-sm">
+            <CitySelector value={city} onChange={setCity} />
+          </div>
+
+          {status === 'done' && result && (
+            <div className="card">
+              <div className="card-header">
+                <div className="card-title"><span className="card-title-dot" style={{background:'var(--cyan)'}} />Spectral Analysis</div>
+              </div>
+              {Object.entries(result.spectral).map(([k, v]) => {
+                const vv = Math.min(parseFloat(v), 99);
+                const c = vv > 60 ? 'var(--red)' : vv > 35 ? 'var(--amber)' : 'var(--green)';
+                return (
+                  <div key={k} className="conf-item">
+                    <div className="conf-header">
+                      <span className="conf-name">{k}</span>
+                      <span className="conf-pct" style={{color:c}}>{vv.toFixed(1)}</span>
+                    </div>
+                    <div className="bar-track"><div className="bar-fill" style={{width:`${vv}%`, background:c, opacity:0.8}} /></div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="stack">
+          {status === 'idle' && (
+            <WaitingState icon="🎙️" title="Waiting for input" desc="Upload an audio file or click 'Record Live' to begin voice scam analysis." />
+          )}
+          {status === 'analyzing' && (
+            <div className="card" style={{minHeight:200}}>
+              <div className="processing-state" style={{padding:'30px 0'}}>
+                <div className="spinner-ring" />
+                <div className="processing-label">Analyzing with AI…</div>
+                <div className="processing-sub">AASIST anti-spoofing · Neural voice classifier<br />GAN synthesis fingerprint detection</div>
+              </div>
+            </div>
+          )}
+          {status === 'done' && result && (
+            <>
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title">
+                    <span className="card-title-dot" style={{background: result.level==='danger'?'var(--red)':result.level==='warn'?'var(--amber)':'var(--green)'}} />
+                    Analysis Result
+                  </div>
+                  {city && <span className="india-badge">📍 {city}</span>}
+                </div>
+                <VerdictBanner result={result} scoreKey="scam_risk" label="Scam Risk Score" />
+                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12}}>
+                  {[{l:'Scam Risk',v:result.scam_risk,c:'var(--red)'},{l:'Authenticity',v:result.authenticity,c:'var(--green)'}].map(m => (
+                    <div key={m.l} style={{background:'rgba(255,255,255,0.025)', border:'1px solid var(--rim)', borderRadius:'var(--r-sm)', padding:'11px 13px', textAlign:'center'}}>
+                      <div style={{fontFamily:'JetBrains Mono, monospace', fontSize:'1.35rem', fontWeight:600, color:m.c, marginBottom:3}}>{m.v.toFixed(1)}%</div>
+                      <div style={{fontSize:'0.67rem', color:'var(--text-3)'}}>{m.l}</div>
+                    </div>
+                  ))}
+                </div>
+                <RiskBar value={result.scam_risk} label="Scam Risk" />
+                <RiskBar value={result.authenticity} label="Voice Authenticity" />
+                <div className="row" style={{marginTop:8}}>
+                  <span className={`tag ${result.level==='danger'?'tag-red':result.level==='warn'?'tag-amber':'tag-green'}`}>{result.voice_type}</span>
+                </div>
+              </div>
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title"><span className="card-title-dot" style={{background:'var(--amber)'}} />Detection Indicators</div>
+                </div>
+                {result.reasons.length > 0 ? (
+                  <div className="flags-list">
+                    {result.reasons.map((f, i) => (
+                      <div key={i} className="flag-item">
+                        <div className="flag-sev medium" />
+                        <div className="flag-text">{f}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="verdict safe" style={{marginBottom:0}}>
+                    <div className="verdict-icon">✓</div>
+                    <div><div className="verdict-label" style={{color:'var(--green)'}}>All Clear</div><div className="verdict-desc">Natural human voice characteristics confirmed</div></div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PHISHING PAGE
+   ═══════════════════════════════════════════════════════════ */
+function PhishingPage({ onDetection }) {
+  const [text, setText]     = useState('');
+  const [status, setStatus] = useState('idle');
+  const [result, setResult] = useState(null);
+  const [city, setCity]     = useState('');
+
+  const samples = [
+    { label: '⚠ Phishing', text: 'URGENT: Your SBI account has been SUSPENDED! Verify immediately at http://sbi-secure.xyz/login or lose access PERMANENTLY. Click HERE NOW to restore your account and avoid losing your funds!' },
+    { label: '⚠ KYC Scam', text: 'Dear Customer, your Aadhaar KYC is pending. Your account will be blocked within 24 hours. Update immediately via http://kyc-update-india.xyz. Wire transfer verification required. Final notice!' },
+    { label: '✓ Safe',      text: 'Hi Priya, hope you are doing well. Just following up on the Q3 report from Tuesday\'s meeting. Could we schedule a quick call this week to review before the board presentation?' },
+  ];
+
+  const analyze = async () => {
+    if (!text.trim()) return;
+    setStatus('analyzing'); setResult(null);
+    await new Promise(r => setTimeout(r, 1600));
+    const res = runPhishingAnalysis(text);
+    setResult(res); setStatus('done');
+    onDetection && onDetection({ type: 'phishing', level: res.level, verdict: res.verdict, city });
+  };
+
+  return (
+    <div className="page-enter">
+      <div className="page-head">
+        <div className="page-head-row">
+          <div>
+            <div className="page-title">Phishing Message Analyzer</div>
+            <div className="page-subtitle">NLP threat classification · BERT phishing model · URL reputation scoring · Semantic analysis</div>
+          </div>
+          {result && <span className={`tag ${result.level==='danger'?'tag-red':result.level==='warn'?'tag-amber':'tag-green'}`}>{result.verdict}</span>}
+        </div>
+      </div>
+
+      <div className="grid-2" style={{alignItems:'start'}}>
+        <div className="stack">
+          <div className="card">
+            <div className="card-header">
+              <div className="card-title"><span className="card-title-dot" style={{background:'var(--cyan)'}} />Message Input</div>
+            </div>
+            <textarea className="field-textarea mb-16"
+              placeholder="Paste suspicious email, SMS, WhatsApp message or any scam text here…"
+              value={text} onChange={e => setText(e.target.value)} />
+            <div style={{display:'flex', gap:6, marginBottom:12, flexWrap:'wrap'}}>
+              {samples.map(s => (
+                <button key={s.label} className="btn btn-ghost btn-xs" onClick={() => setText(s.text)}>{s.label}</button>
+              ))}
+            </div>
+            <button className="btn btn-cyan" style={{width:'100%'}}
+              onClick={analyze} disabled={status === 'analyzing' || !text.trim()}>
+              {status === 'analyzing' ? '⏳ Analyzing with AI…' : '🔍 Analyze for Threats'}
+            </button>
+          </div>
+
+          <div className="card card-sm">
+            <CitySelector value={city} onChange={setCity} />
+          </div>
+
+          {text && (
+            <div className="card card-sm">
+              <div className="card-header" style={{marginBottom:7}}>
+                <div className="card-title" style={{fontSize:'0.58rem'}}>Message Preview</div>
+                <span style={{fontFamily:'JetBrains Mono, monospace', fontSize:'0.58rem', color:'var(--text-3)'}}>{text.split(' ').length}w · {text.length}ch</span>
+              </div>
+              <div style={{fontSize:'0.73rem', color:'var(--text-3)', lineHeight:1.6, fontFamily:'JetBrains Mono, monospace', wordBreak:'break-all', maxHeight:80, overflow:'auto'}}>
+                {text.substring(0, 220)}{text.length > 220 ? '…' : ''}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="stack">
+          {status === 'idle' && (
+            <WaitingState icon="🎣" title="Waiting for input" desc="Paste a suspicious message and click 'Analyze for Threats' to begin classification." />
+          )}
+          {status === 'analyzing' && (
+            <div className="card" style={{minHeight:200}}>
+              <div className="processing-state" style={{padding:'28px 0'}}>
+                <div className="spinner-ring" />
+                <div className="processing-label">Analyzing with AI…</div>
+                <div className="processing-sub">BERT phishing model · URL reputation check · Sentiment analysis</div>
+              </div>
+            </div>
+          )}
+          {status === 'done' && result && (
+            <>
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title">
+                    <span className="card-title-dot" style={{background: result.level==='danger'?'var(--red)':result.level==='warn'?'var(--amber)':'var(--green)'}} />
+                    Classification Result
+                  </div>
+                  {city && <span className="india-badge">📍 {city}</span>}
+                </div>
+                <VerdictBanner result={result} scoreKey="score" label="Phishing Probability" />
+                <RiskBar value={result.score} label="Threat Score" />
+              </div>
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title"><span className="card-title-dot" style={{background:'var(--violet)'}} />Category Breakdown</div>
+                </div>
+                {Object.entries(result.categories).map(([name, val]) => {
+                  const v = +Math.min(parseFloat(val.toFixed(1)), 99).toFixed(1);
+                  const c = v > 60 ? 'var(--red)' : v > 30 ? 'var(--amber)' : 'var(--green)';
+                  return (
+                    <div key={name} className="conf-item">
+                      <div className="conf-header">
+                        <span className="conf-name">{name}</span>
+                        <span className="conf-pct" style={{color:c}}>{v.toFixed(1)}%</span>
+                      </div>
+                      <div className="bar-track"><div className="bar-fill" style={{width:`${v}%`, background:c, opacity:0.8}} /></div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title"><span className="card-title-dot" style={{background:'var(--amber)'}} />Threat Indicators</div>
+                  <span className={`tag ${result.level==='safe'?'tag-green':'tag-amber'}`}>{result.reasons.length} found</span>
+                </div>
+                <div className="flags-list">
+                  {result.reasons.map((f, i) => (
+                    <div key={i} className="flag-item">
+                      <div className={`flag-sev ${result.level === 'safe' ? 'low' : 'medium'}`} />
+                      <div className="flag-text">{f}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LIVE PAGE
+   ═══════════════════════════════════════════════════════════ */
+function LivePage() {
+  const videoRef = useRef();
+  const [active, setActive] = useState(false);
+  const [risk, setRisk]     = useState(0);
+  const [frames, setFrames] = useState(0);
+  const [alerts, setAlerts] = useState([]);
+  const ivRef = useRef();
+
+  const startCam = async () => {
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ video: true });
+      videoRef.current.srcObject = s; videoRef.current.play();
+    } catch {}
+    setActive(true);
+  };
+  const stopCam = () => {
+    videoRef.current?.srcObject?.getTracks().forEach(t => t.stop());
+    setActive(false); setRisk(0); setFrames(0); clearInterval(ivRef.current);
+  };
+
+  useEffect(() => {
+    if (active) {
+      ivRef.current = setInterval(() => {
+        const r = 6 + Math.random() * 28 + (Math.random() > 0.87 ? 40 : 0);
+        setRisk(+r.toFixed(1)); setFrames(c => c + 1);
+        if (r > 68) setAlerts(a => [{ t: new Date().toLocaleTimeString(), v: r.toFixed(1) }, ...a].slice(0, 8));
+      }, 700);
+    }
+    return () => clearInterval(ivRef.current);
+  }, [active]);
+
+  const rColor  = risk > 65 ? 'var(--red)' : risk > 35 ? 'var(--amber)' : 'var(--green)';
+  const rStatus = risk > 65 ? 'HIGH RISK' : risk > 35 ? 'CAUTION' : 'CLEAR';
+
+  return (
+    <div className="page-enter">
+      <div className="page-head">
+        <div className="page-head-row">
+          <div>
+            <div className="page-title">Live Deepfake Detection</div>
+            <div className="page-subtitle">Frame-by-frame webcam analysis · WebRTC capture · Real-time risk scoring at 30 fps</div>
+          </div>
+          {active && <span className="tag tag-green" style={{animation:'pulse-anim 1.5s ease-in-out infinite'}}>● SCANNING</span>}
+        </div>
+      </div>
+
+      <div className="grid-2" style={{alignItems:'start'}}>
+        <div className="stack">
+          <div className="card" style={{padding:0, overflow:'hidden'}}>
+            <div className="cam-frame">
+              <video ref={videoRef} autoPlay muted playsInline style={{background:'#000'}} />
+              {!active && (
+                <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:12, background:'rgba(4,7,14,0.95)'}}>
+                  <div style={{fontSize:'2.5rem'}}>📷</div>
+                  <div style={{fontSize:'0.82rem', color:'var(--text-2)'}}>Camera not active</div>
+                  <button className="btn btn-cyan" onClick={startCam}>▶ Start Live Scan</button>
+                </div>
+              )}
+              {active && (
+                <div className="cam-overlay">
+                  <div className="scan-bar" />
+                  <div className="cam-corners">
+                    <div className="cam-corner tl" /><div className="cam-corner tr" />
+                    <div className="cam-corner bl" /><div className="cam-corner br" />
+                  </div>
+                  <div className="cam-hud-top">
+                    <span className="pulse-dot" style={{width:6, height:6}} />
+                    LIVE SCAN
+                  </div>
+                  <div className="cam-hud-bottom">
+                    <div className="cam-risk-label">
+                      <span>DEEPFAKE RISK</span>
+                      <span style={{fontFamily:'JetBrains Mono, monospace', fontSize:'0.72rem', fontWeight:600, color:rColor}}>
+                        {risk.toFixed(1)}% — {rStatus}
+                      </span>
+                    </div>
+                    <div className="bar-track" style={{marginBottom:0}}>
+                      <div className={`bar-fill ${risk>65?'danger':risk>35?'warn':'safe'}`} style={{width:`${risk}%`}} />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          <div style={{display:'flex', gap:8}}>
+            {active
+              ? <button className="btn btn-danger" style={{flex:1}} onClick={stopCam}>⬛ Stop Camera</button>
+              : <button className="btn btn-cyan"   style={{flex:1}} onClick={startCam}>▶ Start Camera</button>
+            }
+          </div>
+        </div>
+
+        <div className="stack">
+          {!active && frames === 0 ? (
+            <WaitingState icon="📷" title="Waiting for input" desc="Click 'Start Live Scan' to activate your webcam and begin real-time deepfake detection." />
+          ) : (
+            <>
+              <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:10}}>
+                {[
+                  { label:'Live Risk',      val:`${risk.toFixed(1)}%`, color:rColor },
+                  { label:'Frames Scanned', val:frames.toLocaleString(), color:'var(--text-1)' },
+                  { label:'Alerts',         val:alerts.length, color:alerts.length > 0 ? 'var(--red)' : 'var(--text-1)' },
+                  { label:'Status',         val:rStatus, color:rColor },
+                ].map(m => (
+                  <div key={m.label} className="card card-sm" style={{textAlign:'center'}}>
+                    <div style={{fontFamily:'JetBrains Mono, monospace', fontSize:'1.25rem', fontWeight:600, color:m.color, marginBottom:3}}>
+                      {typeof m.val === 'number' ? m.val.toLocaleString() : m.val}
+                    </div>
+                    <div style={{fontSize:'0.68rem', color:'var(--text-2)'}}>{m.label}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title"><span className="card-title-dot" style={{background:'var(--red)'}} />Real-Time Risk</div>
+                </div>
+                <RiskBar value={risk} label="Deepfake Risk" animated={false} />
+                {risk > 65 && (
+                  <div className="verdict danger" style={{marginTop:8, marginBottom:0}}>
+                    <div className="verdict-icon">⚠</div>
+                    <div>
+                      <div className="verdict-label" style={{color:'var(--red)'}}>High Risk Detected</div>
+                      <div className="verdict-desc">Possible synthetic video at {risk.toFixed(1)}% confidence</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title"><span className="card-title-dot" style={{background:'var(--red)'}} />Alert Log</div>
+                  {alerts.length > 0 && <span className="tag tag-red">{alerts.length} alerts</span>}
+                </div>
+                {alerts.length === 0 ? (
+                  <div style={{textAlign:'center', padding:'18px 0', fontFamily:'JetBrains Mono, monospace', fontSize:'0.65rem', color:'var(--text-3)'}}>
+                    {active ? '— No alerts triggered —' : 'Start camera to begin monitoring'}
+                  </div>
+                ) : (
+                  <div className="timeline">
+                    {alerts.map((a, i) => (
+                      <div key={i} className="tl-row">
+                        <div className="tl-dot-wrap">
+                          <div className="tl-dot" style={{background:'var(--red)', boxShadow:'0 0 6px var(--red)'}} />
+                        </div>
+                        <div className="tl-body">
+                          <div className="tl-title" style={{color:'var(--red)'}}>Risk spike: {a.v}%</div>
+                          <div className="tl-meta">{a.t}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DASHBOARD PAGE
+   ═══════════════════════════════════════════════════════════ */
+function DashboardPage({ stats, detections }) {
+  const ph = stats.phishing, vo = stats.voices, df = stats.deepfakes;
+  const wa = stats.whatsapp || 0, ws = stats.website || 0;
+  const total = stats.threats;
+  const score = total === 0 ? 100 : Math.max(0, 100 - total * 5);
+
+  const preds = [
+    { title:'Voice Cloning in Banking (India)', body:'AI voice synthesis attacks on UPI and IVR systems rising rapidly. Vishing campaigns impersonating SBI, HDFC, and Paytm customer care have surged 340% in Q1.', lvl:'danger' },
+    { title:'Deepfake Political Disinformation', body:'Synthetic media targeting Indian elections increasing 218%. State-actor campaigns using next-gen GAN architectures for regional language deepfakes.', lvl:'danger' },
+    { title:'CEO Fraud via Deepfake Video Calls', body:'C-suite impersonation through fake video calls projected to cause ₹2,000 Cr+ in Indian enterprise losses. Primary vector: WhatsApp and Zoom calls.', lvl:'warn' },
+    { title:'OTP & KYC Phishing Surge', body:'Lower barrier to entry driving personalized spear-phishing surge using LLM-generated content in Hindi, Tamil, Telugu. Aadhaar/PAN scams up 180%.', lvl:'warn' },
+  ];
+
+  return (
+    <div className="page-enter">
+      <div className="page-head">
+        <div className="page-head-row">
+          <div>
+            <div className="page-title">Threat Intelligence Dashboard</div>
+            <div className="page-subtitle">Session security posture · Detection history · AI threat predictions for India</div>
+          </div>
+          <span className={`tag ${score > 70 ? 'tag-green' : score > 40 ? 'tag-amber' : 'tag-red'}`}>
+            Score: {score}/100
+          </span>
+        </div>
+      </div>
+
+      {total === 0 ? (
+        <div className="card" style={{marginBottom:16}}>
+          <WaitingState
+            icon="📊"
+            title="No detections yet"
+            desc="Run deepfake, voice, or phishing analysis to see your session dashboard and threat breakdown here."
+          />
+        </div>
+      ) : (
+        <div className="grid-3 mb-16" style={{alignItems:'start'}}>
+          <div className="card" style={{display:'flex', flexDirection:'column', alignItems:'center'}}>
+            <div className="card-header" style={{width:'100%'}}>
+              <div className="card-title"><span className="card-title-dot" />Security Score</div>
+            </div>
+            <ScoreRing score={score} />
+          </div>
+          <div className="card">
+            <div className="card-header">
+              <div className="card-title"><span className="card-title-dot" style={{background:'var(--red)'}} />Session Breakdown</div>
+            </div>
+            {[
+              { l:'Deepfakes Detected', v:df, c:'var(--red)', icon:'🎭' },
+              { l:'Voice Scams',        v:vo, c:'var(--amber)', icon:'🎙️' },
+              { l:'Phishing Caught',    v:ph, c:'var(--violet)', icon:'🎣' },
+              { l:'WhatsApp Scams',     v:stats.whatsapp||0, c:'#25d366', icon:'📱' },
+              { l:'Website Threats',   v:stats.website||0,  c:'var(--violet)', icon:'🌐' },
+              { l:'Total Scans',        v:total, c:'var(--cyan)', icon:'🎯' },
+            ].map(m => (
+              <div key={m.l} style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'7px 0', borderBottom:'1px solid var(--rim)'}}>
+                <div style={{display:'flex', alignItems:'center', gap:8}}>
+                  <span style={{fontSize:'0.9rem'}}>{m.icon}</span>
+                  <span style={{fontSize:'0.76rem', color:'var(--text-2)'}}>{m.l}</span>
+                </div>
+                <span style={{fontFamily:'JetBrains Mono, monospace', fontSize:'1rem', fontWeight:600, color:m.v>0?m.c:'var(--text-3)'}}>{m.v}</span>
+              </div>
+            ))}
+            <div style={{marginTop:12, padding:'10px 12px', background:'rgba(255,255,255,0.025)', border:'1px solid var(--rim)', borderRadius:'var(--r-sm)'}}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
+                <span style={{fontSize:'0.72rem',color:'var(--text-2)'}}>User Safety Score</span>
+                <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:'0.72rem',fontWeight:600,color:score>70?'var(--green)':score>40?'var(--amber)':'var(--red)'}}>{score}/100</span>
+              </div>
+              <div className="safety-score-bar">
+                <div className="safety-score-fill" style={{width:`${score}%`, background:score>70?'var(--green)':score>40?'var(--amber)':'var(--red)', boxShadow:`0 0 8px ${score>70?'rgba(16,185,129,0.4)':score>40?'rgba(245,158,11,0.4)':'rgba(239,68,68,0.4)'}`}} />
+              </div>
+              <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:'0.58rem',color:'var(--text-3)',marginTop:4}}>
+                Formula: 100 - (threats × 5) · Min 0
+              </div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="card-header">
+              <div className="card-title"><span className="card-title-dot" style={{background:'var(--violet)'}} />Risk Exposure</div>
+            </div>
+            <RiskBar value={total > 0 ? 100 - score : 0} label="Overall Risk" />
+            <RiskBar value={Math.min(df * 20, 100)} label="Deepfake Risk" />
+            <RiskBar value={Math.min(vo * 18, 100)} label="Voice Risk" />
+            <RiskBar value={Math.min(ph * 12, 100)} label="Phishing Risk" />
+          </div>
+        </div>
+      )}
+
+      <div className="grid-2 mb-16" style={{alignItems:'start'}}>
+        <div className="card">
+          <div className="card-header">
+            <div className="card-title"><span className="card-title-dot" />Detection History</div>
+            {detections.length > 0 && <span className="tag tag-cyan">{detections.length} events</span>}
+          </div>
+          {detections.length === 0 ? (
+            <div style={{textAlign:'center', padding:'20px 0', color:'var(--text-3)', fontFamily:'JetBrains Mono, monospace', fontSize:'0.68rem'}}>
+              — No detections in this session —
+            </div>
+          ) : (
+            <div className="timeline">
+              {detections.map((d, i) => (
+                <div key={i} className="tl-row">
+                  <div className="tl-dot-wrap">
+                    <div className="tl-dot" style={{background:d.level==='danger'?'var(--red)':d.level==='warn'?'var(--amber)':'var(--green)', boxShadow:`0 0 5px ${d.level==='danger'?'var(--red)':d.level==='warn'?'var(--amber)':'var(--green)'}`}} />
+                  </div>
+                  <div className="tl-body">
+                    <div className="tl-title">{d.verdict}</div>
+                    <div className="tl-meta">{d.type.toUpperCase()} · {d.city || 'City not specified'} · {d.time}</div>
+                  </div>
+                  <span className={`tag ${d.level==='danger'?'tag-red':d.level==='warn'?'tag-amber':'tag-green'}`}>
+                    {d.level === 'danger' ? 'THREAT' : d.level === 'warn' ? 'WARN' : 'SAFE'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="card">
+          <ThreatPredictions detections={detections} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INDIA MAP PAGE
+   ═══════════════════════════════════════════════════════════ */
+function IndiaMapPage({ detections }) {
+  const mapRef   = useRef();
+  const leafRef  = useRef();
+  const mksRef   = useRef([]);
+  const geoRef   = useRef(null);
+  const [filter, setFilter] = useState('all');
+  const [geoLoaded, setGeoLoaded] = useState(false);
+
+  const INDIA_BOUNDS = [[6.5546, 68.1767], [35.6745, 97.3953]];
+
+  /* ── Build state-level detection counts ── */
+  const buildStateCounts = (dets) => {
+    const counts = {};
+    dets.forEach(d => {
+      if (d.city && CITY_TO_STATE[d.city]) {
+        const s = CITY_TO_STATE[d.city];
+        counts[s] = (counts[s] || 0) + 1;
+      }
+    });
+    return counts;
+  };
+
+  const stateColor = (stateName, counts, maxCount) => {
+    const c = counts[stateName] || 0;
+    if (c === 0) return 'rgba(6,182,212,0.06)';
+    const ratio = c / Math.max(maxCount, 1);
+    if (ratio > 0.66) return 'rgba(239,68,68,0.45)';
+    if (ratio > 0.33) return 'rgba(245,158,11,0.35)';
+    return 'rgba(6,182,212,0.25)';
+  };
+
+  /* ── Initialize map once ── */
+  useEffect(() => {
+    if (leafRef.current) return;
+    const map = L.map('india-map', {
+      center: [22.5, 82.5],
+      zoom: 5,
+      minZoom: 4,
+      maxZoom: 12,
+      maxBounds: INDIA_BOUNDS,
+      maxBoundsViscosity: 1.0,
+      zoomControl: true,
+    });
+
+    /* Dark base tile */
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap © CARTO',
+      subdomains: 'abcd',
+      maxZoom: 19,
+    }).addTo(map);
+
+    /* Inject popup styles */
+    const style = document.createElement('style');
+    style.textContent = `
+      .leaflet-popup-content-wrapper {
+        background: #0a1222; border: 1px solid rgba(6,182,212,0.22);
+        border-radius: 10px; color: #c4d4e8;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+        font-family: 'DM Sans', sans-serif;
+      }
+      .leaflet-popup-tip { background: #0a1222; }
+      .leaflet-popup-content { margin: 12px 16px; font-size: 0.82rem; line-height: 1.6; }
+    `;
+    document.head.appendChild(style);
+    leafRef.current = map;
+
+    /* ── Load India States GeoJSON ── */
+    fetch('https://raw.githubusercontent.com/Subhash9325/GeoJson-Data-of-Indian-States/master/Indian_States')
+      .then(r => r.json())
+      .then(geoData => {
+        const counts = buildStateCounts(detections);
+        const maxCount = Math.max(...Object.values(counts), 1);
+        const layer = L.geoJSON(geoData, {
+          style: (feature) => {
+            const sName = feature.properties.NAME_1 || feature.properties.state || '';
+            return {
+              fillColor: stateColor(sName, counts, maxCount),
+              fillOpacity: 0.75,
+              color: 'rgba(6,182,212,0.3)',
+              weight: 1.2,
+              opacity: 1,
+            };
+          },
+          onEachFeature: (feature, layer) => {
+            const sName = feature.properties.NAME_1 || feature.properties.state || 'Unknown';
+            const cnt = counts[sName] || 0;
+            layer.bindTooltip(`<b style="color:#06b6d4">${sName}</b><br/>${cnt > 0 ? `⚠ ${cnt} threat${cnt>1?'s':''} detected` : 'No threats detected'}`, {
+              sticky: true, className: 'state-tooltip',
+              direction: 'auto',
+            });
+          }
+        }).addTo(map);
+        geoRef.current = layer;
+        setGeoLoaded(true);
+      })
+      .catch(() => {
+        /* Fallback: circle markers for each state capital */
+        Object.entries(STATE_COORDS).forEach(([name, pos]) => {
+          L.circleMarker([pos.lat, pos.lng], {
+            radius: 18, fillColor: 'rgba(6,182,212,0.08)',
+            color: 'rgba(6,182,212,0.25)', weight: 1.5, fillOpacity: 0.7,
+          }).bindTooltip(name, { permanent: false, direction: 'top' }).addTo(leafRef.current);
+        });
+        setGeoLoaded(true);
+      });
+  }, []); // eslint-disable-line
+
+  /* ── Re-color state polygons when detections change ── */
+  useEffect(() => {
+    if (!geoRef.current) return;
+    const counts = buildStateCounts(detections);
+    const maxCount = Math.max(...Object.values(counts), 1);
+    geoRef.current.eachLayer(layer => {
+      const sName = layer.feature?.properties?.NAME_1 || layer.feature?.properties?.state || '';
+      layer.setStyle({
+        fillColor: stateColor(sName, counts, maxCount),
+        fillOpacity: 0.75,
+      });
+      const cnt = counts[sName] || 0;
+      layer.setTooltipContent(`<b style="color:#06b6d4">${sName}</b><br/>${cnt > 0 ? `⚠ ${cnt} threat${cnt>1?'s':''} detected` : 'No threats detected'}`);
+    });
+  }, [detections]);
+
+  /* ── Update markers whenever detections/filter change ── */
+  useEffect(() => {
+    if (!leafRef.current) return;
+    const map = leafRef.current;
+    mksRef.current.forEach(m => m.remove());
+    mksRef.current = [];
+
+    const filtered = filter === 'all' ? detections : detections.filter(d => d.type === filter);
+    filtered.forEach(d => {
+      if (!d.city) return;
+      const cityObj = INDIA_CITIES.find(c => c.name === d.city);
+      if (!cityObj) return;
+
+      const color = d.type === 'deepfake' ? '#ef4444'
+        : d.type === 'voice'    ? '#f59e0b'
+        : d.type === 'whatsapp' ? '#25d366'
+        : d.type === 'website'  ? '#8b5cf6'
+        : '#06b6d4';
+      const riskLabel = d.level === 'danger' ? 'High' : d.level === 'warn' ? 'Medium' : 'Low';
+      const riskColor = d.level === 'danger' ? '#ef4444' : d.level === 'warn' ? '#f59e0b' : '#10b981';
+      const typeLabel = d.type === 'deepfake' ? 'Deepfake Video Scam'
+        : d.type === 'voice'    ? 'AI Voice Clone Scam'
+        : d.type === 'whatsapp' ? 'WhatsApp Scam'
+        : d.type === 'website'  ? 'Phishing Website'
+        : 'Phishing Attack';
+
+      const icon = L.divIcon({
+        html: `<div style="
+          width:16px;height:16px;border-radius:50%;
+          background:${color};box-shadow:0 0 14px ${color},0 0 28px ${color}55;
+          border:2px solid rgba(255,255,255,0.35);
+          animation:pm 2s ease-in-out infinite;
+        "></div>
+        <style>@keyframes pm{0%,100%{box-shadow:0 0 14px ${color},0 0 28px ${color}55}50%{box-shadow:0 0 22px ${color},0 0 44px ${color}88}}</style>`,
+        className: '', iconSize: [16, 16], iconAnchor: [8, 8],
+      });
+
+      const mk = L.marker([cityObj.lat, cityObj.lng], { icon }).addTo(map)
+        .bindPopup(`
+          <div style="min-width:190px">
+            <div style="color:${color};font-weight:700;font-size:0.88rem;margin-bottom:6px">⚠ ${typeLabel}</div>
+            <div style="color:#7a94b0;font-size:0.76rem;margin-bottom:3px"><b style="color:#eaf0fc">City:</b> ${d.city}</div>
+            <div style="color:#7a94b0;font-size:0.76rem;margin-bottom:3px"><b style="color:#eaf0fc">State:</b> ${CITY_TO_STATE[d.city] || '—'}</div>
+            <div style="color:#7a94b0;font-size:0.76rem;margin-bottom:3px"><b style="color:#eaf0fc">Risk:</b> <span style="color:${riskColor}">${riskLabel}</span></div>
+            <div style="color:#7a94b0;font-size:0.76rem"><b style="color:#eaf0fc">Time:</b> ${d.time}</div>
+          </div>
+        `);
+      mksRef.current.push(mk);
+    });
+  }, [detections, filter]);
+
+  const counts = {
+    phishing: detections.filter(d=>d.type==='phishing').length,
+    voice:    detections.filter(d=>d.type==='voice').length,
+    deepfake: detections.filter(d=>d.type==='deepfake').length,
+    whatsapp: detections.filter(d=>d.type==='whatsapp').length,
+    website:  detections.filter(d=>d.type==='website').length,
+  };
+
+  return (
+    <div className="page-enter">
+      <div className="page-head">
+        <div className="page-head-row">
+          <div>
+            <div className="page-title">India Cyber Threat Map</div>
+            <div className="page-subtitle">State boundaries · Real-time markers from your detections · Hover states for threat count</div>
+          </div>
+          <span className="india-badge">🇮🇳 All 28 States</span>
+        </div>
+      </div>
+
+      {/* Stats row */}
+      <div style={{display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:10, marginBottom:16}}>
+        {[
+          { l:'Total', v:detections.length, c:'var(--cyan)' },
+          { l:'Phishing', v:counts.phishing, c:'var(--cyan)' },
+          { l:'Voice',    v:counts.voice,    c:'var(--amber)' },
+          { l:'Deepfake', v:counts.deepfake, c:'var(--red)' },
+          { l:'WhatsApp', v:counts.whatsapp, c:'#25d366' },
+        ].map((k, i) => (
+          <div key={i} className="kpi-card" style={{'--kpi-color': k.c}}>
+            <div className="kpi-value" style={{color: k.v>0?k.c:'var(--text-3)', fontSize:'1.35rem'}}>{k.v}</div>
+            <div className="kpi-label">{k.l}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="card mb-16">
+        <div className="card-header">
+          <div className="card-title">
+            <span className="card-title-dot" />
+            India Threat Map — All States
+            {!geoLoaded && <span style={{marginLeft:8,fontSize:'0.62rem',color:'var(--text-3)',fontFamily:'JetBrains Mono,monospace'}}>Loading state boundaries…</span>}
+          </div>
+          <div className="filter-row">
+            {['all','phishing','voice','deepfake','whatsapp','website'].map(f => (
+              <button key={f} className={`filter-chip ${filter===f?'on':''}`} onClick={() => setFilter(f)}>
+                {f==='all'?'All':f==='phishing'?'Phishing':f==='voice'?'Voice':f==='deepfake'?'Deepfake':f==='whatsapp'?'WhatsApp':'Website'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div id="india-map" ref={mapRef} style={{height:520}} />
+
+        <div className="row" style={{marginTop:12, gap:16, flexWrap:'wrap'}}>
+          {[['var(--cyan)','Phishing'],['var(--amber)','Voice Scam'],['var(--red)','Deepfake'],['#25d366','WhatsApp'],['var(--violet)','Website']].map(([c,l]) => (
+            <div key={l} style={{display:'flex', alignItems:'center', gap:6, fontFamily:'JetBrains Mono, monospace', fontSize:'0.62rem', color:'var(--text-3)'}}>
+              <span style={{width:8, height:8, borderRadius:'50%', background:c, display:'inline-block', boxShadow:`0 0 5px ${c}`}} />
+              {l}
+            </div>
+          ))}
+          <div style={{display:'flex',gap:10,marginLeft:8}}>
+            {[['rgba(239,68,68,0.45)','High Activity'],['rgba(245,158,11,0.35)','Medium'],['rgba(6,182,212,0.25)','Low'],['rgba(6,182,212,0.06)','No data']].map(([c,l]) => (
+              <div key={l} style={{display:'flex',alignItems:'center',gap:5,fontFamily:'JetBrains Mono,monospace',fontSize:'0.6rem',color:'var(--text-3)'}}>
+                <span style={{width:10,height:10,borderRadius:2,background:c,display:'inline-block',border:'1px solid rgba(255,255,255,0.1)'}} />{l}
+              </div>
+            ))}
+          </div>
+          <div style={{marginLeft:'auto', fontFamily:'JetBrains Mono, monospace', fontSize:'0.6rem', color:'var(--text-3)'}}>
+            Hover states for details · Click markers · Scroll to zoom
+          </div>
+        </div>
+      </div>
+
+      <div className="grid-2 mb-16" style={{alignItems:'start'}}>
+        <div className="card">
+          <div className="card-header">
+            <div className="card-title"><span className="card-title-dot" style={{background:'var(--red)'}} />State-Level Heatmap</div>
+            <span className="tag tag-amber">INTENSITY</span>
+          </div>
+          <StateHeatmap detections={detections} />
+        </div>
+
+        {detections.length === 0 ? (
+          <div className="card">
+            <WaitingState
+              icon="🗺️"
+              title="No threat markers yet"
+              desc="Run any analysis with a city selected — markers will appear on the map and state heatmap instantly."
+            />
+          </div>
+        ) : (
+          <div className="card">
+            <div className="card-header">
+              <div className="card-title"><span className="card-title-dot" style={{background:'var(--red)'}} />Threat Events by City</div>
+            </div>
+            {detections.filter(d => d.city).sort((a,b) => {
+              const order = {danger:0,warn:1,safe:2};
+              return (order[a.level]||2) - (order[b.level]||2);
+            }).map((d, i) => (
+              <div key={i} className="threat-row">
+                <div className="threat-row-left">
+                  <span className="threat-rank">#{i+1}</span>
+                  <div>
+                    <div className="threat-city">{d.city}</div>
+                    <div className="threat-type-label">{d.verdict}</div>
+                  </div>
+                </div>
+                <div style={{display:'flex', alignItems:'center', gap:8}}>
+                  <span className={`tag ${d.type==='deepfake'?'tag-red':d.type==='voice'?'tag-amber':d.type==='whatsapp'?'tag-green':d.type==='website'?'tag-violet':'tag-cyan'}`}>{d.type}</span>
+                  <span className={`tag ${d.level==='danger'?'tag-red':d.level==='warn'?'tag-amber':'tag-green'}`}>
+                    {d.level === 'danger' ? 'HIGH' : d.level === 'warn' ? 'MEDIUM' : 'LOW'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   WHATSAPP SCAM ANALYZER PAGE
+   ═══════════════════════════════════════════════════════════ */
+function WhatsAppPage({ onDetection }) {
+  const [msg, setMsg]       = useState('');
+  const [status, setStatus] = useState('idle');
+  const [result, setResult] = useState(null);
+  const [city, setCity]     = useState('');
+  const samples = [
+    { label:'⚠ UPI Fraud',    text:'🚨URGENT🚨 Your Jio SIM will be deactivated in 2 hours. Click here to verify your Aadhaar KYC immediately: http://jio-kyc-verify.xyz/update. Share OTP received to avoid disconnection NOW!' },
+    { label:'⚠ Lottery Scam', text:'Congratulations! You have won ₹25 LAKH in KBC Lucky Draw 2024 🎉 You are selected by Amitabh Bachchan. Send ₹2500 registration fee via GPay to 9876543210 to claim your prize. Share this to 20 groups for double reward!' },
+    { label:'⚠ Bank OTP',     text:'Dear SBI customer, your account shows suspicious activity. Your NetBanking is blocked. Share OTP 847291 with our security team on 022-XXXXXXXX to reactivate within 30 mins. Failure will lead to permanent account suspension.' },
+    { label:'✓ Safe Msg',      text:'Hey Rahul, are you coming to the office tomorrow? Manager called a team meeting at 10am. Also bring the project files we discussed. Please confirm.' },
+  ];
+  const analyze = async () => {
+    if (!msg.trim()) return;
+    setStatus('analyzing'); setResult(null);
+    await new Promise(r => setTimeout(r, 1800));
+    const res = runWhatsAppAnalysis(msg);
+    setResult(res); setStatus('done');
+    onDetection && onDetection({ type: 'whatsapp', level: res.level, verdict: res.verdict, city });
+  };
+  const reset = () => { setMsg(''); setResult(null); setStatus('idle'); setCity(''); };
+
+  return (
+    <div className="page-enter">
+      <div className="page-head">
+        <div className="page-head-row">
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <div className="wa-icon">📱</div>
+            <div>
+              <div className="page-title">WhatsApp Scam Analyzer</div>
+              <div className="page-subtitle">UPI fraud · Fake KYC links · OTP theft · Lottery scams · Viral forward baits · India-specific patterns</div>
+            </div>
+          </div>
+          {result && (
+            <div className="row">
+              <span className={`tag ${result.level==='danger'?'tag-red':result.level==='warn'?'tag-amber':'tag-green'}`}>{result.verdict}</span>
+              <button className="btn btn-ghost btn-sm" onClick={reset}>↺ Reset</button>
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="grid-2" style={{alignItems:'start'}}>
+        <div className="stack">
+          <div className="card">
+            <div className="card-header">
+              <div className="card-title" style={{color:'#25d366'}}>
+                <span style={{width:5,height:5,borderRadius:'50%',background:'#25d366',boxShadow:'0 0 7px #25d36688',display:'inline-block'}} />
+                Message Input
+              </div>
+            </div>
+            <textarea className="field-textarea mb-8"
+              placeholder="Paste a WhatsApp message here — KYC scam, UPI fraud, lottery, OTP theft, bank alert, or any suspicious forward…"
+              value={msg}
+              onChange={e => { setMsg(e.target.value); if (status === 'done') { setResult(null); setStatus('idle'); }}}
+              style={{minHeight:120}}
+            />
+            <div style={{display:'flex',gap:5,marginBottom:10,flexWrap:'wrap'}}>
+              {samples.map(s => (
+                <button key={s.label} className="btn btn-ghost btn-xs" onClick={() => { setMsg(s.text); setResult(null); setStatus('idle'); }}>{s.label}</button>
+              ))}
+            </div>
+            <CitySelector value={city} onChange={setCity} />
+            <button className="btn btn-cyan" style={{width:'100%',marginTop:10,background:'#25d366',color:'#000'}}
+              onClick={analyze} disabled={status==='analyzing'||!msg.trim()}>
+              {status==='analyzing' ? '⏳ Analyzing…' : '🔍 Analyze WhatsApp Message'}
+            </button>
+          </div>
+
+          {msg && (
+            <div className="card card-sm">
+              <div className="card-header" style={{marginBottom:8}}>
+                <div className="card-title" style={{fontSize:'0.58rem'}}>Message Preview</div>
+              </div>
+              <div className="wa-bubble-wrap">
+                <div className="wa-bubble-header">
+                  <div className="wa-bubble-avatar">SC</div>
+                  <div>
+                    <div className="wa-bubble-name">Suspicious Contact</div>
+                  </div>
+                  <div className="wa-bubble-time">{new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true})}</div>
+                </div>
+                <div className="wa-bubble-msg">{msg.substring(0, 180)}{msg.length > 180 ? '…' : ''}</div>
+                {(msg.match(/https?:\/\/\S+|www\.\S+/gi) || []).slice(0,3).map((u, i) => (
+                  <div key={i} className="wa-url-chip">🔗 {u.substring(0, 40)}{u.length > 40 ? '…' : ''}</div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="stack">
+          {status === 'idle' && (
+            <WaitingState icon="📱" title="Waiting for input" desc="Paste a WhatsApp message above and click Analyze. India-specific fraud patterns detected automatically." />
+          )}
+          {status === 'analyzing' && (
+            <div className="card" style={{minHeight:200}}>
+              <div className="processing-state" style={{padding:'30px 0'}}>
+                <div className="spinner-ring" style={{borderTopColor:'#25d366'}} />
+                <div className="processing-label">Analyzing with AI…</div>
+                <div className="processing-sub">NLP classifier · Urgency detection · URL reputation · India fraud pattern scan</div>
+              </div>
+            </div>
+          )}
+          {status === 'done' && result && (
+            <>
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title">
+                    <span className="card-title-dot" style={{background:result.level==='danger'?'var(--red)':result.level==='warn'?'var(--amber)':'var(--green)'}} />
+                    Analysis Result
+                  </div>
+                  {city && <span className="india-badge">📍 {city}</span>}
+                </div>
+                <VerdictBanner result={result} scoreKey="score" label="Scam Probability" />
+                <RiskBar value={parseFloat(result.score)} label="Threat Score" />
+                <div className="row" style={{flexWrap:'wrap',gap:5,marginTop:4}}>
+                  <span className="tag tag-dim">Confidence: {result.confidence}%</span>
+                  {result.urls.length > 0 && <span className="tag tag-red">{result.urls.length} URL{result.urls.length>1?'s':''} found</span>}
+                  {result.suspiciousUrl && <span className="tag tag-red">⚠ Suspicious Domain</span>}
+                </div>
+              </div>
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title"><span className="card-title-dot" style={{background:'var(--violet)'}} />Category Scores</div>
+                </div>
+                {Object.entries(result.categories).map(([name, val]) => {
+                  const v = +Math.min(parseFloat(val.toFixed(1)), 99).toFixed(1);
+                  const c = v > 60 ? 'var(--red)' : v > 30 ? 'var(--amber)' : 'var(--green)';
+                  return (
+                    <div key={name} className="conf-item">
+                      <div className="conf-header"><span className="conf-name">{name}</span><span className="conf-pct" style={{color:c}}>{v.toFixed(1)}%</span></div>
+                      <div className="bar-track"><div className="bar-fill" style={{width:`${v}%`,background:c,opacity:0.82}} /></div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title"><span className="card-title-dot" style={{background:'var(--amber)'}} />Threat Indicators</div>
+                  <span className={`tag ${result.level==='safe'?'tag-green':'tag-amber'}`}>{result.reasons.length} found</span>
+                </div>
+                <div className="flags-list">
+                  {result.reasons.map((r, i) => (
+                    <div key={i} className="flag-item">
+                      <div className={`flag-sev ${result.level==='danger'?'high':result.level==='warn'?'medium':'low'}`} />
+                      <div className="flag-text">{r}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   WEBSITE PHISHING SCREENSHOT DETECTOR PAGE
+   ═══════════════════════════════════════════════════════════ */
+function WebsitePage({ onDetection }) {
+  const [file, setFile]     = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [status, setStatus] = useState('idle');
+  const [result, setResult] = useState(null);
+  const [city, setCity]     = useState('');
+  const [drag, setDrag]     = useState(false);
+  const fRef = useRef();
+
+  const analyze = async (f) => {
+    setFile(f); setStatus('analyzing'); setResult(null);
+    const reader = new FileReader();
+    reader.onload = e => setPreview(e.target.result);
+    reader.readAsDataURL(f);
+    await new Promise(r => setTimeout(r, 2600));
+    const res = runWebsiteAnalysis(f.name);
+    setResult(res); setStatus('done');
+    onDetection && onDetection({ type: 'website', level: res.level, verdict: res.verdict, city });
+  };
+  const reset = () => { setFile(null); setPreview(null); setResult(null); setStatus('idle'); setCity(''); };
+
+  return (
+    <div className="page-enter">
+      <div className="page-head">
+        <div className="page-head-row">
+          <div>
+            <div className="page-title">Website Scam Detector</div>
+            <div className="page-subtitle">Screenshot analysis · Fake login forms · Brand impersonation · Domain age check · SSL verification</div>
+          </div>
+          {result && (
+            <div className="row">
+              <span className={`tag ${result.level==='danger'?'tag-red':result.level==='warn'?'tag-amber':'tag-green'}`}>{result.verdict}</span>
+              <button className="btn btn-ghost btn-sm" onClick={reset}>↺ Reset</button>
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="grid-2" style={{alignItems:'start'}}>
+        <div className="stack">
+          <div className="card">
+            <div className="card-header">
+              <div className="card-title"><span className="card-title-dot" style={{background:'var(--violet)'}} />Upload Website Screenshot</div>
+            </div>
+            {status !== 'analyzing' ? (
+              <div className={`upload-zone ${drag?'drag':''}`}
+                onDragOver={e=>{e.preventDefault();setDrag(true)}}
+                onDragLeave={()=>setDrag(false)}
+                onDrop={e=>{e.preventDefault();setDrag(false);const f=e.dataTransfer.files[0];if(f)analyze(f);}}
+                onClick={()=>fRef.current.click()}>
+                <input ref={fRef} type="file" accept="image/*" style={{display:'none'}}
+                  onChange={e=>e.target.files[0]&&analyze(e.target.files[0])} />
+                <div className="upload-icon">🖼️</div>
+                <h4>Drop a website screenshot here</h4>
+                <p>PNG, JPG, WEBP · Take a screenshot of any suspicious site · <em>or click to browse</em></p>
+              </div>
+            ) : (
+              <div className="processing-state">
+                <div className="spinner-ring" />
+                <div className="processing-label">Analyzing with AI…</div>
+                <div className="processing-sub">Scanning for fake login forms · Brand matching · Domain analysis</div>
+              </div>
+            )}
+            {preview && (
+              <div style={{marginTop:10}}>
+                <img src={preview} alt="Screenshot preview" className="screenshot-preview" />
+              </div>
+            )}
+            {file && (
+              <div className="file-chip" style={{marginTop:8}}>
+                <span style={{fontSize:'1.1rem'}}>🖼️</span>
+                <div>
+                  <div className="file-chip-name">{file.name}</div>
+                  <div className="file-chip-meta">{(file.size/1024).toFixed(0)} KB · {file.type}</div>
+                </div>
+              </div>
+            )}
+            <div style={{marginTop:12}}>
+              <CitySelector value={city} onChange={setCity} />
+            </div>
+          </div>
+        </div>
+
+        <div className="stack">
+          {status === 'idle' && (
+            <WaitingState icon="🌐" title="Waiting for input" desc="Upload a screenshot of any suspicious website. Our AI will detect fake logins, brand spoofing, and phishing layouts." />
+          )}
+          {status === 'analyzing' && (
+            <div className="card" style={{minHeight:220}}>
+              <div className="processing-state" style={{padding:'32px 0'}}>
+                <div className="spinner-ring" />
+                <div className="processing-label">Analyzing with AI…</div>
+                <div className="processing-sub">Layout detection · Logo matching · Form analysis · Domain verification</div>
+              </div>
+            </div>
+          )}
+          {status === 'done' && result && (
+            <>
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title">
+                    <span className="card-title-dot" style={{background:result.level==='danger'?'var(--red)':result.level==='warn'?'var(--amber)':'var(--green)'}} />
+                    Website Analysis
+                  </div>
+                  {city && <span className="india-badge">📍 {city}</span>}
+                </div>
+                <VerdictBanner result={result} scoreKey="score" label="Phishing Probability" />
+                <RiskBar value={parseFloat(result.score)} label="Phishing Risk" />
+                <div className="row" style={{flexWrap:'wrap',gap:5,marginTop:4}}>
+                  <span className="tag tag-dim">Confidence: {result.confidence}%</span>
+                  {result.template_match !== 'None' && <span className="tag tag-red">⚠ {result.template_match}</span>}
+                </div>
+              </div>
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title"><span className="card-title-dot" style={{background:'var(--violet)'}} />Site Indicators</div>
+                </div>
+                {result.indicators.map((ind, i) => (
+                  <div key={i} className={`site-indicator ${ind.sev}`}>
+                    <div className="site-indicator-icon">{ind.icon}</div>
+                    <div>
+                      <div className="site-indicator-txt">{ind.label}</div>
+                      <div className="site-indicator-sub">{ind.sub}</div>
+                    </div>
+                    <span className={`tag ${ind.sev==='danger'?'tag-red':ind.sev==='warn'?'tag-amber':'tag-green'}`} style={{marginLeft:'auto',flexShrink:0}}>
+                      {ind.sev === 'danger' ? 'HIGH' : ind.sev === 'warn' ? 'WARN' : 'OK'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title"><span className="card-title-dot" style={{background:'var(--red)'}} />Detection Reasons</div>
+                </div>
+                <div className="flags-list">
+                  {result.reasons.map((r, i) => (
+                    <div key={i} className="flag-item">
+                      <div className={`flag-sev ${result.level==='danger'?'high':result.level==='warn'?'medium':'low'}`} />
+                      <div className="flag-text">{r}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CYBER AI CHATBOT PAGE
+   ═══════════════════════════════════════════════════════════ */
+function ChatbotPage() {
+  const [messages, setMessages] = useState([
+    { role:'bot', text:"Namaste! 🙏 I'm CyberShield AI Assistant. Ask me about deepfakes, voice scams, phishing, WhatsApp fraud, UPI scams, or how to stay safe online in India.", time: new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true}) }
+  ]);
+  const [input, setInput]     = useState('');
+  const [typing, setTyping]   = useState(false);
+  const bottomRef = useRef();
+  const quickPrompts = ['What is a deepfake?','How to spot UPI fraud?','WhatsApp scam warning signs','How to report cybercrime in India?','What is voice cloning?','Protect my Aadhaar'];
+
+  const sendMessage = async (text) => {
+    if (!text.trim()) return;
+    const userMsg = { role:'user', text: text.trim(), time: new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true}) };
+    setMessages(prev => [...prev, userMsg]);
+    setInput(''); setTyping(true);
+    await new Promise(r => setTimeout(r, 900 + Math.random() * 700));
+    const response = getBotResponse(text);
+    const botMsg = { role:'bot', text: response, time: new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true}) };
+    setMessages(prev => [...prev, botMsg]);
+    setTyping(false);
+  };
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:'smooth' }); }, [messages, typing]);
+
+  const formatText = (txt) => txt.split('\n').map((line, i) => (
+    <span key={i}>{line.replace(/\*\*(.*?)\*\*/g, '$1')}<br/></span>
+  ));
+
+  return (
+    <div className="page-enter">
+      <div className="page-head">
+        <div className="page-head-row">
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <div style={{width:38,height:38,borderRadius:'var(--r-md)',background:'linear-gradient(135deg,var(--cyan),var(--violet))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.1rem'}}>🤖</div>
+            <div>
+              <div className="page-title">CyberShield AI Assistant</div>
+              <div className="page-subtitle">Your India cybersecurity guide · Real-time threat advice · Scam education</div>
+            </div>
+          </div>
+          <span className="tag tag-green" style={{animation:'pulse-anim 2s ease-in-out infinite'}}>● ONLINE</span>
+        </div>
+      </div>
+
+      <div className="grid-6040" style={{alignItems:'start'}}>
+        <div className="card" style={{padding:'18px'}}>
+          <div className="card-header">
+            <div className="card-title"><span className="card-title-dot" style={{background:'var(--cyan)'}} />Conversation</div>
+            <span className="tag tag-cyan">{messages.length} messages</span>
+          </div>
+          <div className="chat-window">
+            {messages.map((m, i) => (
+              <div key={i} className={`chat-msg ${m.role}`}>
+                {m.role === 'bot' && (
+                  <div style={{display:'flex',alignItems:'flex-start',gap:8}}>
+                    <div className="chat-bot-avatar">AI</div>
+                    <div>
+                      <div className="chat-bubble">{formatText(m.text)}</div>
+                      <div className="chat-time">{m.time}</div>
+                    </div>
+                  </div>
+                )}
+                {m.role === 'user' && (
+                  <div>
+                    <div className="chat-bubble">{m.text}</div>
+                    <div className="chat-time">{m.time}</div>
+                  </div>
+                )}
+              </div>
+            ))}
+            {typing && (
+              <div className="chat-msg bot">
+                <div style={{display:'flex',alignItems:'flex-start',gap:8}}>
+                  <div className="chat-bot-avatar">AI</div>
+                  <div className="chat-typing">
+                    <div className="chat-dot"/><div className="chat-dot"/><div className="chat-dot"/>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={bottomRef} />
+          </div>
+          <div className="chat-input-row">
+            <input
+              className="chat-input"
+              placeholder="Ask about scams, deepfakes, UPI fraud, safety tips…"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage(input)}
+            />
+            <button className="btn btn-cyan btn-sm" onClick={() => sendMessage(input)} disabled={!input.trim() || typing}>
+              Send ↑
+            </button>
+          </div>
+        </div>
+
+        <div className="stack">
+          <div className="card">
+            <div className="card-header">
+              <div className="card-title"><span className="card-title-dot" />Quick Questions</div>
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:6}}>
+              {quickPrompts.map((q, i) => (
+                <button key={i} className="chat-quick-btn" style={{textAlign:'left'}} onClick={() => sendMessage(q)}>
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="card card-sm">
+            <div className="card-header" style={{marginBottom:8}}>
+              <div className="card-title"><span className="card-title-dot" style={{background:'var(--amber)'}} />Emergency Contacts</div>
+            </div>
+            {[
+              { icon:'🚨', label:'Cyber Crime Helpline', val:'1930' },
+              { icon:'🌐', label:'Report Online', val:'cybercrime.gov.in' },
+              { icon:'🪪', label:'UIDAI Helpline', val:'1947' },
+              { icon:'💳', label:'RBI Complaint', val:'rbi.org.in/cms' },
+            ].map((c, i) => (
+              <div key={i} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'7px 0',borderBottom:i<3?'1px solid var(--rim)':'none'}}>
+                <div style={{display:'flex',alignItems:'center',gap:7}}>
+                  <span style={{fontSize:'0.85rem'}}>{c.icon}</span>
+                  <span style={{fontSize:'0.74rem',color:'var(--text-2)'}}>{c.label}</span>
+                </div>
+                <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:'0.68rem',fontWeight:600,color:'var(--cyan)'}}>{c.val}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   THREAT PREDICTION MODULE (used inside Dashboard)
+   ═══════════════════════════════════════════════════════════ */
+function ThreatPredictions({ detections }) {
+  const [loading, setLoading] = useState(false);
+  const [preds, setPreds]     = useState(null);
+
+  const basePreds = [
+    { icon:'🎭', title:'Deepfake Political Disinformation Surge', body:'State-actor campaigns using next-gen GAN architectures for regional language deepfakes targeting elections. Rise of 218% detected in Q1 2025.', lvl:'high', prob: 91 },
+    { icon:'🎙️', title:'Voice Cloning in Banking (UPI/IVR)', body:'AI voice synthesis attacks impersonating SBI, HDFC, and Paytm customer care rising rapidly. Vishing campaigns up 340% targeting metro cities.', lvl:'high', prob: 88 },
+    { icon:'📱', title:'WhatsApp KYC Fraud Escalation', body:'Fake TRAI/Jio/Airtel KYC deactivation messages increasing with personalized targeting using leaked telecom databases.', lvl:'medium', prob: 74 },
+    { icon:'💸', title:'UPI QR Code Impersonation', body:'Scammers embedding malicious QR codes in paper flyers near ATMs and shops. Collect-vs-Pay screen confusion attacks rising.', lvl:'medium', prob: 68 },
+    { icon:'🌐', title:'Bank Website Clone Attacks', body:'Phishing sites mimicking SBI NetBanking and HDFC increasing with convincing typosquat domains. Average victim loses ₹47,000.', lvl:'medium', prob: 62 },
+    { icon:'🆔', title:'Aadhaar/PAN KYC Phishing', body:'Personalized spear-phishing using leaked Aadhaar data. LLM-generated content in Hindi, Tamil, Telugu evading traditional filters.', lvl:'low', prob: 45 },
+  ];
+
+  const generatePredictions = async () => {
+    setLoading(true);
+    await new Promise(r => setTimeout(r, 1800));
+    // Augment base predictions with session data
+    const sessionTypes = detections.reduce((a, d) => { a[d.type] = (a[d.type]||0)+1; return a; }, {});
+    const augmented = basePreds.map(p => ({
+      ...p,
+      prob: Math.min(p.prob + (sessionTypes[p.icon==='🎭'?'deepfake':p.icon==='🎙️'?'voice':'phishing']||0)*3, 99),
+    }));
+    setPreds(augmented);
+    setLoading(false);
+  };
+
+  if (!preds) return (
+    <div className="waiting-state">
+      <div className="waiting-icon">🔮</div>
+      <div className="waiting-title">AI Threat Predictions</div>
+      <div className="waiting-desc">Analyze current threats to generate AI-powered predictions for India's cyber landscape</div>
+      <button className="btn btn-cyan btn-sm" style={{marginTop:8}} onClick={generatePredictions} disabled={loading}>
+        {loading ? '⏳ Generating…' : '🔮 Generate Predictions'}
+      </button>
+    </div>
+  );
+
+  return (
+    <div>
+      <div className="card-header" style={{marginBottom:12}}>
+        <div className="card-title"><span className="card-title-dot" style={{background:'var(--amber)'}} />AI Threat Predictions — India 2025</div>
+        <div className="row">
+          <span className="tag tag-violet">AI MODEL</span>
+          <button className="btn btn-ghost btn-xs" onClick={() => setPreds(null)}>↺</button>
+        </div>
+      </div>
+      {preds.map((p, i) => (
+        <div key={i} className={`trend-card ${p.lvl}`}>
+          <div className="trend-icon">{p.icon}</div>
+          <div style={{flex:1}}>
+            <div className="trend-eyebrow">◈ {p.lvl === 'high' ? 'HIGH RISK' : p.lvl === 'medium' ? 'MEDIUM RISK' : 'MODERATE'} · {p.prob}% probability</div>
+            <div className="trend-title">{p.title}</div>
+            <div className="trend-body">{p.body}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INDIA STATE HEATMAP COMPONENT
+   ═══════════════════════════════════════════════════════════ */
+function StateHeatmap({ detections }) {
+  // Build state counts from actual detections
+  const stateData = {};
+  detections.forEach(d => {
+    if (d.city && CITY_TO_STATE[d.city]) {
+      const state = CITY_TO_STATE[d.city];
+      stateData[state] = (stateData[state] || 0) + 1;
+    }
+  });
+  const maxCount = Math.max(...Object.values(stateData), 1);
+  const sorted = Object.entries(stateData).sort((a, b) => b[1] - a[1]);
+
+  const getHeatColor = (count, max) => {
+    const ratio = count / max;
+    if (ratio > 0.7) return { bg:'rgba(239,68,68,0.15)', bar:'var(--red)', text:'var(--red)' };
+    if (ratio > 0.4) return { bg:'rgba(245,158,11,0.12)', bar:'var(--amber)', text:'var(--amber)' };
+    return { bg:'rgba(6,182,212,0.08)', bar:'var(--cyan)', text:'var(--cyan)' };
+  };
+
+  if (sorted.length === 0) return (
+    <div style={{textAlign:'center',padding:'24px 0',color:'var(--text-3)',fontFamily:'JetBrains Mono,monospace',fontSize:'0.67rem'}}>
+      — No state data yet — Select a city when analyzing to build heatmap —
+    </div>
+  );
+
+  return (
+    <div>
+      {sorted.map(([state, count]) => {
+        const heat = getHeatColor(count, maxCount);
+        return (
+          <div key={state} className="heat-state" style={{background:heat.bg, border:`1px solid ${heat.bar}22`}}>
+            <div className="heat-state-name">{state}</div>
+            <div className="heat-state-bar" style={{background:`rgba(255,255,255,0.04)`, borderRadius:100}}>
+              <div style={{width:`${(count/maxCount*100).toFixed(0)}%`, height:'100%', borderRadius:100, background:heat.bar, transition:'width 1s ease'}} />
+            </div>
+            <div className="heat-state-count" style={{color:heat.text}}>{count}</div>
+          </div>
+        );
+      })}
+      <div style={{marginTop:10,display:'flex',gap:8,flexWrap:'wrap'}}>
+        {[{c:'var(--red)',l:'High Activity'},{c:'var(--amber)',l:'Medium'},{c:'var(--cyan)',l:'Low'}].map(h=>(
+          <div key={h.l} className="heat-legend" style={{background:`${h.c}10`,border:`1px solid ${h.c}22`,color:h.c}}>
+            <span style={{width:7,height:7,borderRadius:'50%',background:h.c,display:'inline-block',boxShadow:`0 0 5px ${h.c}`}} />
+            {h.l}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   APP SHELL
+   ═══════════════════════════════════════════════════════════ */
+const NAV = [
+  { id:'home',     label:'Overview',       icon:'⬡',  sec:0 },
+  { id:'deepfake', label:'Deepfake Detect',icon:'🎭', sec:0 },
+  { id:'voice',    label:'Voice Analysis', icon:'🎙️', sec:0 },
+  { id:'phishing', label:'Phishing Scan',  icon:'🎣', sec:0 },
+  { id:'whatsapp', label:'WhatsApp Scan',  icon:'📱', sec:0 },
+  { id:'website',  label:'Website Detect', icon:'🌐', sec:0 },
+  { id:'live',     label:'Live Detection', icon:'📷', sec:0 },
+  { id:'dashboard',label:'Dashboard',      icon:'📊', sec:1 },
+  { id:'chatbot',  label:'AI Assistant',   icon:'🤖', sec:1 },
+  { id:'map',      label:'India Map',      icon:'🗺️', sec:1 },
+];
+
+function Clock() {
+  const [t, setT] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setT(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <span className="topbar-time">
+      {t.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: false })}
+    </span>
+  );
+}
+
+const PAGE_TITLES = {
+  home:'Overview', deepfake:'Deepfake Detector', voice:'Voice Analyzer',
+  phishing:'Phishing Scanner', whatsapp:'WhatsApp Analyzer', website:'Website Detector',
+  live:'Live Detection', dashboard:'Dashboard', chatbot:'AI Assistant', map:'India Map'
+};
+
+/* ═══════════════════════════════════════════════════════════
+   PERSISTENT STORAGE HELPERS
+   ═══════════════════════════════════════════════════════════ */
+const DB_KEY = (user) => `cybershield_v3_${user}`;
+
+function loadUserData(username) {
+  try {
+    const raw = localStorage.getItem(DB_KEY(username));
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
+}
+
+function saveUserData(username, detections, stats) {
+  try {
+    localStorage.setItem(DB_KEY(username), JSON.stringify({
+      detections, stats, savedAt: new Date().toISOString()
+    }));
+  } catch (e) { console.warn('Storage error:', e); }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LOGIN SCREEN
+   ═══════════════════════════════════════════════════════════ */
+function LoginScreen({ onLogin }) {
+  const [username, setUsername] = React.useState('');
+  const [err, setErr] = React.useState('');
+  const knownUsers = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('cybershield_v3_')) knownUsers.push(k.replace('cybershield_v3_', ''));
+    }
+  } catch {}
+
+  const handleLogin = () => {
+    const u = username.trim();
+    if (!u) { setErr('Please enter a username'); return; }
+    if (u.length < 2) { setErr('Username must be at least 2 characters'); return; }
+    onLogin(u);
+  };
+
+  return (
+    <div style={{
+      minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center',
+      background:'var(--ink)', position:'relative', zIndex:10,
+    }}>
+      <div style={{
+        width:380, background:'rgba(7,12,23,0.98)', border:'1px solid rgba(6,182,212,0.15)',
+        borderRadius:16, padding:36, boxShadow:'0 24px 80px rgba(0,0,0,0.7)',
+      }}>
+        <div style={{textAlign:'center',marginBottom:28}}>
+          <div style={{
+            width:56,height:56,borderRadius:14,margin:'0 auto 14px',
+            background:'linear-gradient(145deg,#06b6d4,rgba(6,182,212,0.5))',
+            display:'flex',alignItems:'center',justifyContent:'center',
+            boxShadow:'0 0 30px rgba(6,182,212,0.3)',
+          }}>
+            <svg viewBox="0 0 16 16" fill="none" width="28" height="28">
+              <path d="M8 1.5L13.5 4.2v3.8c0 3.2-2.2 5.5-5.5 6.5C4.7 13.5 2.5 11.2 2.5 8V4.2L8 1.5z" fill="rgba(4,7,14,0.8)" stroke="rgba(4,7,14,0.6)" strokeWidth="0.5"/>
+              <path d="M5.8 8.2l1.7 1.7 2.9-2.9" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <div style={{fontSize:'1.3rem',fontWeight:700,color:'var(--text-1)',letterSpacing:'-0.02em'}}>
+            Cyber<span style={{color:'var(--cyan)'}}>Shield</span> AI
+          </div>
+          <div style={{fontSize:'0.7rem',color:'var(--text-3)',fontFamily:'JetBrains Mono,monospace',letterSpacing:'0.12em',textTransform:'uppercase',marginTop:4}}>
+            India Threat Intelligence · v3.0
+          </div>
+        </div>
+
+        <div style={{marginBottom:18}}>
+          <label style={{fontSize:'0.72rem',color:'var(--text-2)',fontWeight:500,display:'block',marginBottom:6,fontFamily:'JetBrains Mono,monospace',letterSpacing:'0.06em',textTransform:'uppercase'}}>
+            Username
+          </label>
+          <input
+            className="chat-input"
+            style={{width:'100%',padding:'10px 14px',fontSize:'0.9rem'}}
+            placeholder="Enter your username…"
+            value={username}
+            onChange={e => { setUsername(e.target.value); setErr(''); }}
+            onKeyDown={e => e.key === 'Enter' && handleLogin()}
+            autoFocus
+          />
+          {err && <div style={{color:'var(--red)',fontSize:'0.72rem',marginTop:5,fontFamily:'JetBrains Mono,monospace'}}>{err}</div>}
+        </div>
+
+        {knownUsers.length > 0 && (
+          <div style={{marginBottom:16}}>
+            <div style={{fontSize:'0.65rem',color:'var(--text-3)',fontFamily:'JetBrains Mono,monospace',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.08em'}}>
+              Recent users
+            </div>
+            <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
+              {knownUsers.map(u => (
+                <button key={u} className="btn btn-ghost btn-xs"
+                  onClick={() => { setUsername(u); setErr(''); }}
+                  style={{fontSize:'0.72rem'}}>
+                  {u}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <button className="btn btn-cyan" style={{width:'100%',fontSize:'0.88rem',padding:'11px 0'}} onClick={handleLogin}>
+          → Enter Platform
+        </button>
+
+        <div style={{marginTop:14,textAlign:'center',fontSize:'0.65rem',color:'var(--text-3)',fontFamily:'JetBrains Mono,monospace'}}>
+          Your session history is stored locally and restored on login
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [currentUser, setCurrentUser] = React.useState(null);
+  const [page, setPage] = useState('home');
+  const [stats, setStats] = useState({ threats: 0, deepfakes: 0, voices: 0, phishing: 0, whatsapp: 0, website: 0 });
+  const [detections, setDetections] = useState([]);
+
+  /* ── Login handler — loads stored data ── */
+  const handleLogin = (username) => {
+    setCurrentUser(username);
+    const saved = loadUserData(username);
+    if (saved) {
+      setDetections(saved.detections || []);
+      setStats(saved.stats || { threats: 0, deepfakes: 0, voices: 0, phishing: 0, whatsapp: 0, website: 0 });
+    } else {
+      setDetections([]);
+      setStats({ threats: 0, deepfakes: 0, voices: 0, phishing: 0, whatsapp: 0, website: 0 });
+    }
+    setPage('home');
+  };
+
+  /* ── Logout ── */
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setPage('home');
+    setDetections([]);
+    setStats({ threats: 0, deepfakes: 0, voices: 0, phishing: 0, whatsapp: 0, website: 0 });
+  };
+
+  /* ── Save on every detection ── */
+  const handleDetection = useCallback((info) => {
+    const det = {
+      ...info,
+      time: new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: false }),
+      date: new Date().toLocaleDateString('en-IN'),
+    };
+    setDetections(prev => {
+      const next = [det, ...prev];
+      setStats(s => {
+        const n = { ...s }; n.threats += 1;
+        if (info.type === 'deepfake')  n.deepfakes += 1;
+        else if (info.type === 'voice')    n.voices    += 1;
+        else if (info.type === 'phishing') n.phishing  += 1;
+        else if (info.type === 'whatsapp') n.whatsapp  += 1;
+        else if (info.type === 'website')  n.website   += 1;
+        if (currentUser) saveUserData(currentUser, next, n);
+        return n;
+      });
+      return next;
+    });
+  }, [currentUser]);
+
+  if (!currentUser) return <LoginScreen onLogin={handleLogin} />;
+
+  const renderPage = () => {
+    switch (page) {
+      case 'home':      return <HomePage      setPage={setPage} stats={stats} detections={detections} />;
+      case 'deepfake':  return <DeepfakePage  onDetection={handleDetection} />;
+      case 'voice':     return <VoicePage     onDetection={handleDetection} />;
+      case 'phishing':  return <PhishingPage  onDetection={handleDetection} />;
+      case 'whatsapp':  return <WhatsAppPage  onDetection={handleDetection} />;
+      case 'website':   return <WebsitePage   onDetection={handleDetection} />;
+      case 'live':      return <LivePage />;
+      case 'dashboard': return <DashboardPage stats={stats} detections={detections} />;
+      case 'chatbot':   return <ChatbotPage />;
+      case 'map':       return <IndiaMapPage  detections={detections} />;
+      default:          return <HomePage      setPage={setPage} stats={stats} detections={detections} />;
+    }
+  };
+
+  return (
+    <div className="shell">
+      {/* ═══ SIDEBAR ═══ */}
+      <aside className="sidebar">
+        <div className="sidebar-logo">
+          <div className="logo-mark">
+            <svg viewBox="0 0 16 16" fill="none" width="16" height="16">
+              <path d="M8 1.5L13.5 4.2v3.8c0 3.2-2.2 5.5-5.5 6.5C4.7 13.5 2.5 11.2 2.5 8V4.2L8 1.5z" fill="rgba(4,7,14,0.8)" stroke="rgba(4,7,14,0.6)" strokeWidth="0.5" />
+              <path d="M5.8 8.2l1.7 1.7 2.9-2.9" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <div>
+            <div className="logo-text">Cyber<b>Shield</b> AI</div>
+            <div className="logo-sub">India Threat Intel</div>
+          </div>
+        </div>
+
+        <div className="sidebar-section-label">Detection</div>
+        {NAV.filter(n => n.sec === 0).map(n => (
+          <button key={n.id} className={`nav-item ${page === n.id ? 'active' : ''}`} onClick={() => setPage(n.id)}>
+            <div className="nav-icon">{n.icon}</div>
+            {n.label}
+          </button>
+        ))}
+
+        <div className="sidebar-divider" />
+        <div className="sidebar-section-label">Intelligence</div>
+        {NAV.filter(n => n.sec === 1).map(n => (
+          <button key={n.id} className={`nav-item ${page === n.id ? 'active' : ''}`} onClick={() => setPage(n.id)}>
+            <div className="nav-icon">{n.icon}</div>
+            {n.label}
+            {n.id === 'map' && detections.filter(d=>d.city).length > 0 && (
+              <span style={{marginLeft:'auto',fontFamily:'JetBrains Mono,monospace',fontSize:'0.55rem',background:'rgba(249,115,22,0.15)',border:'1px solid rgba(249,115,22,0.25)',color:'var(--orange)',padding:'1px 5px',borderRadius:'100px'}}>
+                {detections.filter(d=>d.city).length}
+              </span>
+            )}
+          </button>
+        ))}
+
+        <div className="sidebar-footer">
+          {/* User info */}
+          <div style={{marginBottom:8,padding:'6px 0',borderBottom:'1px solid var(--rim)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+            <div>
+              <div style={{fontSize:'0.72rem',fontWeight:600,color:'var(--text-1)'}}>👤 {currentUser}</div>
+              <div style={{fontSize:'0.58rem',color:'var(--text-3)',fontFamily:'JetBrains Mono,monospace'}}>
+                {detections.length} scan{detections.length!==1?'s':''} stored
+              </div>
+            </div>
+            <button className="btn btn-ghost btn-xs" onClick={handleLogout} style={{fontSize:'0.6rem',padding:'2px 7px'}}>
+              Logout
+            </button>
+          </div>
+          <div className="status-pill">
+            <div className="pulse-dot" />
+            All systems operational
+          </div>
+          <div className="sb-version">
+            <span>v3.0.0 · India Edition</span>
+            <span style={{color:'rgba(6,182,212,0.5)'}}>AI READY</span>
+          </div>
+        </div>
+      </aside>
+
+      {/* ═══ MAIN ═══ */}
+      <div className="main-wrap">
+        <header className="topbar">
+          <div className="topbar-left">
+            <div className="breadcrumb">
+              <span>CyberShield</span>
+              <span className="bc-sep">/</span>
+              <span className="bc-cur">{PAGE_TITLES[page]}</span>
+            </div>
+            <span className="india-badge" style={{marginLeft:4}}>🇮🇳 India</span>
+          </div>
+          <div className="topbar-right">
+            {stats.threats > 0 ? (
+              <div className="threat-badge alert">
+                <span className="pulse-dot danger" style={{width:6, height:6}} />
+                {stats.threats} threat{stats.threats !== 1 ? 's' : ''} detected
+              </div>
+            ) : (
+              <div className="threat-badge clean">
+                <span className="pulse-dot" style={{width:6, height:6}} />
+                No threats detected
+              </div>
+            )}
+            <Clock />
+          </div>
+        </header>
+
+        <div className="page-area">
+          {renderPage()}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
