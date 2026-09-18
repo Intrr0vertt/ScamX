@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.env
+cybershield.db
+*.db-shm
+*.db-wal
+.DS_Store
+Thumbs.db
