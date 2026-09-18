@@ -1,0 +1,120 @@
+{
+  "selected_model": "random_forest",
+  "validation_metrics": {
+    "logistic_regression": {
+      "precision": 0.067079,
+      "recall": 0.878378,
+      "f1": 0.12464,
+      "pr_auc": 0.630087,
+      "accuracy": 0.978629,
+      "confusion_matrix": [
+        [
+          41743,
+          904
+        ],
+        [
+          9,
+          65
+        ]
+      ],
+      "training_time_s": 6.762,
+      "prediction_time_ms": 86.81
+    },
+    "random_forest": {
+      "precision": 0.797101,
+      "recall": 0.743243,
+      "f1": 0.769231,
+      "pr_auc": 0.801701,
+      "accuracy": 0.999228,
+      "confusion_matrix": [
+        [
+          42633,
+          14
+        ],
+        [
+          19,
+          55
+        ]
+      ],
+      "training_time_s": 77.801,
+      "prediction_time_ms": 263.297
+    }
+  },
+  "final_test_metrics": {
+    "precision": 0.893939,
+    "recall": 0.797297,
+    "f1": 0.842857,
+    "pr_auc": 0.812133,
+    "accuracy": 0.999485,
+    "confusion_matrix": [
+      [
+        42641,
+        7
+      ],
+      [
+        15,
+        59
+      ]
+    ],
+    "training_time_s": 77.801,
+    "prediction_time_ms": 201.362
+  },
+  "feature_info": {
+    "features": [
+      "V1",
+      "V2",
+      "V3",
+      "V4",
+      "V5",
+      "V6",
+      "V7",
+      "V8",
+      "V9",
+      "V10",
+      "V11",
+      "V12",
+      "V13",
+      "V14",
+      "V15",
+      "V16",
+      "V17",
+      "V18",
+      "V19",
+      "V20",
+      "V21",
+      "V22",
+      "V23",
+      "V24",
+      "V25",
+      "V26",
+      "V27",
+      "V28",
+      "Time",
+      "Amount"
+    ],
+    "n_features": 30,
+    "dataset_name": "Credit Card Fraud Detection (Kaggle/ULB)",
+    "dataset_source": "https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud",
+    "n_total_records": 284807,
+    "n_fraud": 492,
+    "n_legitimate": 284315,
+    "fraud_pct": 0.1727,
+    "n_train": 199364,
+    "n_val": 42721,
+    "n_test": 42722,
+    "n_train_fraud": 344,
+    "n_val_fraud": 74,
+    "n_test_fraud": 74,
+    "selected_model": "random_forest",
+    "random_state": 42,
+    "training_date": "2026-09-17T13:33:48Z",
+    "python_version": "3.13.5",
+    "scikit_learn_version": "1.9.1",
+    "pandas_version": "3.0.5",
+    "numpy_version": "2.5.3",
+    "joblib_version": "1.6.0",
+    "class_balance_strategy": "class_weight=balanced (no SMOTE)",
+    "selection_metric": "PR-AUC (average_precision_score) on validation set",
+    "evaluation_methodology": "70/15/15 stratified split \u2014 validation for selection, test for final evaluation"
+  }
+}
