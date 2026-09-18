@@ -1,11 +1,12 @@
+# Large ML dataset
+project/backend/ml/data/creditcard.csv
+
+# Generated ML model files
+project/backend/ml/model/*.joblib
+
+# Local database
+project/backend/cybershield.db
+
+# Python cache
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-venv/
-.env
-cybershield.db
-*.db-shm
-*.db-wal
-.DS_Store
-Thumbs.db
